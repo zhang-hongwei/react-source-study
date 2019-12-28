@@ -17,7 +17,9 @@ const RESERVED_PROPS = {
 
 ## defineKeyPropWarningGetter，defineRefPropWarningGetter
 
-## ReactElement  返回一个$$typeof = REACT_ELEMENT_TYPE的对象
+## ReactElement
+
+> 返回一个$$typeof = REACT_ELEMENT_TYPE的对象
 
 ```js
  ReactElement(type, key, ref, self, source, owner, props)
