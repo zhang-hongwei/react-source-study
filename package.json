@@ -1,0 +1,21 @@
+{
+  "name": "react-source-study",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "book": "gitbook serve ./gitbook"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhang-hongwei/react-source-study.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zhang-hongwei/react-source-study/issues"
+  },
+  "homepage": "https://github.com/zhang-hongwei/react-source-study#readme"
+}
