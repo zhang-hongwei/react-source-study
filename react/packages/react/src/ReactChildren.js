@@ -112,6 +112,7 @@ function traverseAllChildrenImpl(
   let invokeCallback = false;
 
   if (children === null) {
+
     invokeCallback = true;
   } else {
     switch (type) {

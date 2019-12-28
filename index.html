@@ -10,21 +10,16 @@
         <script src="packages/react/src/ReactElement.js"></script>
 
         <script>
-            let a = createElement(
-                "div",
-                {
-                    id: "name_i1",
-                    id2: "1name_i1",
-                    id1: "2name_i1"
-                },
-                createElement("div", {
-                    id: "fd",
-                    id2: "dfs234",
-                    id1: "123"
-                })
-            );
+            function fn(a, b) {
+                return a + b;
+            }
 
-            console.log(a);
+            let a = fn(1, 2);
+
+            var b = new Error("测试错误");
+            // throw b;
+
+            // console.log("===>>>>1", 'cehis ')
         </script>
     </body>
 </html>
