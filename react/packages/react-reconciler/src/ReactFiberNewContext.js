@@ -18,20 +18,25 @@ export type ContextDependency<T> = {
   next: ContextDependency<mixed> | null,
 };
 
-import warningWithoutStack from 'shared/warningWithoutStack';
 import {isPrimaryRenderer} from './ReactFiberHostConfig';
 import {createCursor, push, pop} from './ReactFiberStack';
 import MAX_SIGNED_31_BIT_INT from './maxSigned31BitInt';
-import {NoWork} from './ReactFiberExpirationTime';
-import {ContextProvider, ClassComponent} from 'shared/ReactWorkTags';
+import {
+  ContextProvider,
+  ClassComponent,
+  DehydratedFragment,
+} from 'shared/ReactWorkTags';
 
 import invariant from 'shared/invariant';
-import warning from 'shared/warning';
+import is from 'shared/objectIs';
 import {
   createUpdate,
   enqueueUpdate,
   ForceUpdate,
 } from 'react-reconciler/src/ReactUpdateQueue';
+import {NoWork} from './ReactFiberExpirationTime';
+import {markWorkInProgressReceivedUpdate} from './ReactFiberBeginWork';
+import {enableSuspenseServerRenderer} from 'shared/ReactFeatureFlags';
 
 const valueCursor: StackCursor<mixed> = createCursor(null);
 
@@ -45,12 +50,29 @@ let currentlyRenderingFiber: Fiber | null = null;
 let lastContextDependency: ContextDependency<mixed> | null = null;
 let lastContextWithAllBitsObserved: ReactContext<any> | null = null;
 
-export function resetContextDependences(): void {
+let isDisallowedContextReadInDEV: boolean = false;
+
+export function resetContextDependencies(): void {
   // This is called right before React yields execution, to ensure `readContext`
   // cannot be called outside the render phase.
   currentlyRenderingFiber = null;
   lastContextDependency = null;
   lastContextWithAllBitsObserved = null;
+  if (__DEV__) {
+    isDisallowedContextReadInDEV = false;
+  }
+}
+
+export function enterDisallowedContextReadInDEV(): void {
+  if (__DEV__) {
+    isDisallowedContextReadInDEV = true;
+  }
+}
+
+export function exitDisallowedContextReadInDEV(): void {
+  if (__DEV__) {
+    isDisallowedContextReadInDEV = false;
+  }
 }
 
 export function pushProvider<T>(providerFiber: Fiber, nextValue: T): void {
@@ -61,13 +83,16 @@ export function pushProvider<T>(providerFiber: Fiber, nextValue: T): void {
 
     context._currentValue = nextValue;
     if (__DEV__) {
-      warningWithoutStack(
-        context._currentRenderer === undefined ||
-          context._currentRenderer === null ||
-          context._currentRenderer === rendererSigil,
-        'Detected multiple renderers concurrently rendering the ' +
-          'same context provider. This is currently unsupported.',
-      );
+      if (
+        context._currentRenderer !== undefined &&
+        context._currentRenderer !== null &&
+        context._currentRenderer !== rendererSigil
+      ) {
+        console.error(
+          'Detected multiple renderers concurrently rendering the ' +
+            'same context provider. This is currently unsupported.',
+        );
+      }
       context._currentRenderer = rendererSigil;
     }
   } else {
@@ -75,13 +100,16 @@ export function pushProvider<T>(providerFiber: Fiber, nextValue: T): void {
 
     context._currentValue2 = nextValue;
     if (__DEV__) {
-      warningWithoutStack(
-        context._currentRenderer2 === undefined ||
-          context._currentRenderer2 === null ||
-          context._currentRenderer2 === rendererSigil,
-        'Detected multiple renderers concurrently rendering the ' +
-          'same context provider. This is currently unsupported.',
-      );
+      if (
+        context._currentRenderer2 !== undefined &&
+        context._currentRenderer2 !== null &&
+        context._currentRenderer2 !== rendererSigil
+      ) {
+        console.error(
+          'Detected multiple renderers concurrently rendering the ' +
+            'same context provider. This is currently unsupported.',
+        );
+      }
       context._currentRenderer2 = rendererSigil;
     }
   }
@@ -105,14 +133,7 @@ export function calculateChangedBits<T>(
   newValue: T,
   oldValue: T,
 ) {
-  // Use Object.is to compare the new context value to the old value. Inlined
-  // Object.is polyfill.
-  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
-  if (
-    (oldValue === newValue &&
-      (oldValue !== 0 || 1 / oldValue === 1 / (newValue: any))) ||
-    (oldValue !== oldValue && newValue !== newValue) // eslint-disable-line no-self-compare
-  ) {
+  if (is(oldValue, newValue)) {
     // No change
     return 0;
   } else {
@@ -122,14 +143,46 @@ export function calculateChangedBits<T>(
         : MAX_SIGNED_31_BIT_INT;
 
     if (__DEV__) {
-      warning(
-        (changedBits & MAX_SIGNED_31_BIT_INT) === changedBits,
-        'calculateChangedBits: Expected the return value to be a ' +
-          '31-bit integer. Instead received: %s',
-        changedBits,
-      );
+      if ((changedBits & MAX_SIGNED_31_BIT_INT) !== changedBits) {
+        console.error(
+          'calculateChangedBits: Expected the return value to be a ' +
+            '31-bit integer. Instead received: %s',
+          changedBits,
+        );
+      }
     }
     return changedBits | 0;
+  }
+}
+
+export function scheduleWorkOnParentPath(
+  parent: Fiber | null,
+  renderExpirationTime: ExpirationTime,
+) {
+  // Update the child expiration time of all the ancestors, including
+  // the alternates.
+  let node = parent;
+  while (node !== null) {
+    let alternate = node.alternate;
+    if (node.childExpirationTime < renderExpirationTime) {
+      node.childExpirationTime = renderExpirationTime;
+      if (
+        alternate !== null &&
+        alternate.childExpirationTime < renderExpirationTime
+      ) {
+        alternate.childExpirationTime = renderExpirationTime;
+      }
+    } else if (
+      alternate !== null &&
+      alternate.childExpirationTime < renderExpirationTime
+    ) {
+      alternate.childExpirationTime = renderExpirationTime;
+    } else {
+      // Neither alternate was updated, which means the rest of the
+      // ancestor path already has sufficient priority.
+      break;
+    }
+    node = node.return;
   }
 }
 
@@ -148,9 +201,12 @@ export function propagateContextChange(
     let nextFiber;
 
     // Visit this fiber.
-    let dependency = fiber.firstContextDependency;
-    if (dependency !== null) {
-      do {
+    const list = fiber.dependencies;
+    if (list !== null) {
+      nextFiber = fiber.child;
+
+      let dependency = list.firstContext;
+      while (dependency !== null) {
         // Check if the context matches.
         if (
           dependency.context === context &&
@@ -160,7 +216,7 @@ export function propagateContextChange(
 
           if (fiber.tag === ClassComponent) {
             // Schedule a force update on the work-in-progress.
-            const update = createUpdate(renderExpirationTime);
+            const update = createUpdate(renderExpirationTime, null);
             update.tag = ForceUpdate;
             // TODO: Because we don't have a work-in-progress, this will add the
             // update to the current fiber, too, which means it will persist even if
@@ -169,57 +225,61 @@ export function propagateContextChange(
             enqueueUpdate(fiber, update);
           }
 
-          if (
-            fiber.expirationTime === NoWork ||
-            fiber.expirationTime > renderExpirationTime
-          ) {
+          if (fiber.expirationTime < renderExpirationTime) {
             fiber.expirationTime = renderExpirationTime;
           }
           let alternate = fiber.alternate;
           if (
             alternate !== null &&
-            (alternate.expirationTime === NoWork ||
-              alternate.expirationTime > renderExpirationTime)
+            alternate.expirationTime < renderExpirationTime
           ) {
             alternate.expirationTime = renderExpirationTime;
           }
-          // Update the child expiration time of all the ancestors, including
-          // the alternates.
-          let node = fiber.return;
-          while (node !== null) {
-            alternate = node.alternate;
-            if (
-              node.childExpirationTime === NoWork ||
-              node.childExpirationTime > renderExpirationTime
-            ) {
-              node.childExpirationTime = renderExpirationTime;
-              if (
-                alternate !== null &&
-                (alternate.childExpirationTime === NoWork ||
-                  alternate.childExpirationTime > renderExpirationTime)
-              ) {
-                alternate.childExpirationTime = renderExpirationTime;
-              }
-            } else if (
-              alternate !== null &&
-              (alternate.childExpirationTime === NoWork ||
-                alternate.childExpirationTime > renderExpirationTime)
-            ) {
-              alternate.childExpirationTime = renderExpirationTime;
-            } else {
-              // Neither alternate was updated, which means the rest of the
-              // ancestor path already has sufficient priority.
-              break;
-            }
-            node = node.return;
+
+          scheduleWorkOnParentPath(fiber.return, renderExpirationTime);
+
+          // Mark the expiration time on the list, too.
+          if (list.expirationTime < renderExpirationTime) {
+            list.expirationTime = renderExpirationTime;
           }
+
+          // Since we already found a match, we can stop traversing the
+          // dependency list.
+          break;
         }
-        nextFiber = fiber.child;
         dependency = dependency.next;
-      } while (dependency !== null);
+      }
     } else if (fiber.tag === ContextProvider) {
       // Don't scan deeper if this is a matching provider
       nextFiber = fiber.type === workInProgress.type ? null : fiber.child;
+    } else if (
+      enableSuspenseServerRenderer &&
+      fiber.tag === DehydratedFragment
+    ) {
+      // If a dehydrated suspense bounudary is in this subtree, we don't know
+      // if it will have any context consumers in it. The best we can do is
+      // mark it as having updates.
+      let parentSuspense = fiber.return;
+      invariant(
+        parentSuspense !== null,
+        'We just came from a parent so we must have had a parent. This is a bug in React.',
+      );
+      if (parentSuspense.expirationTime < renderExpirationTime) {
+        parentSuspense.expirationTime = renderExpirationTime;
+      }
+      let alternate = parentSuspense.alternate;
+      if (
+        alternate !== null &&
+        alternate.expirationTime < renderExpirationTime
+      ) {
+        alternate.expirationTime = renderExpirationTime;
+      }
+      // This is intentionally passing this fiber as the parent
+      // because we want to schedule this fiber as having work
+      // on its children. We'll use the childExpirationTime on
+      // this fiber to indicate that a context has changed.
+      scheduleWorkOnParentPath(parentSuspense, renderExpirationTime);
+      nextFiber = fiber.sibling;
     } else {
       // Traverse down.
       nextFiber = fiber.child;
@@ -260,14 +320,37 @@ export function prepareToReadContext(
   lastContextDependency = null;
   lastContextWithAllBitsObserved = null;
 
-  // Reset the work-in-progress list
-  workInProgress.firstContextDependency = null;
+  const dependencies = workInProgress.dependencies;
+  if (dependencies !== null) {
+    const firstContext = dependencies.firstContext;
+    if (firstContext !== null) {
+      if (dependencies.expirationTime >= renderExpirationTime) {
+        // Context list has a pending update. Mark that this fiber performed work.
+        markWorkInProgressReceivedUpdate();
+      }
+      // Reset the work-in-progress list
+      dependencies.firstContext = null;
+    }
+  }
 }
 
 export function readContext<T>(
   context: ReactContext<T>,
   observedBits: void | number | boolean,
 ): T {
+  if (__DEV__) {
+    // This warning would fire if you read context inside a Hook like useMemo.
+    // Unlike the class check below, it's not enforced in production for perf.
+    if (isDisallowedContextReadInDEV) {
+      console.error(
+        'Context can only be read while React is rendering. ' +
+          'In classes, you can read it in the render method or getDerivedStateFromProps. ' +
+          'In function components, you can read it directly in the function body, but not ' +
+          'inside Hooks like useReducer() or useMemo().',
+      );
+    }
+  }
+
   if (lastContextWithAllBitsObserved === context) {
     // Nothing to do. We already observe everything in this context.
   } else if (observedBits === false || observedBits === 0) {
@@ -294,11 +377,19 @@ export function readContext<T>(
     if (lastContextDependency === null) {
       invariant(
         currentlyRenderingFiber !== null,
-        'Context can only be read while React is ' +
-          'rendering, e.g. inside the render method or getDerivedStateFromProps.',
+        'Context can only be read while React is rendering. ' +
+          'In classes, you can read it in the render method or getDerivedStateFromProps. ' +
+          'In function components, you can read it directly in the function body, but not ' +
+          'inside Hooks like useReducer() or useMemo().',
       );
-      // This is the first dependency in the list
-      currentlyRenderingFiber.firstContextDependency = lastContextDependency = contextItem;
+
+      // This is the first dependency for this component. Create a new list.
+      lastContextDependency = contextItem;
+      currentlyRenderingFiber.dependencies = {
+        expirationTime: NoWork,
+        firstContext: contextItem,
+        responders: null,
+      };
     } else {
       // Append a new context item.
       lastContextDependency = lastContextDependency.next = contextItem;

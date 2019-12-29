@@ -6,7 +6,6 @@
  */
 
 import invariant from 'shared/invariant';
-import warning from 'shared/warning';
 import {
   getIteratorFn,
   REACT_ELEMENT_TYPE,
@@ -112,7 +111,6 @@ function traverseAllChildrenImpl(
   let invokeCallback = false;
 
   if (children === null) {
-
     invokeCallback = true;
   } else {
     switch (type) {
@@ -163,12 +161,13 @@ function traverseAllChildrenImpl(
       if (__DEV__) {
         // Warn about using Maps as children
         if (iteratorFn === children.entries) {
-          warning(
-            didWarnAboutMaps,
-            'Using Maps as children is unsupported and will likely yield ' +
-              'unexpected results. Convert it to a sequence/iterable of keyed ' +
-              'ReactElements instead.',
-          );
+          if (!didWarnAboutMaps) {
+            console.error(
+              'Using Maps as children is unsupported and will likely yield ' +
+                'unexpected results. Convert it to a sequence/iterable of keyed ' +
+                'ReactElements instead.',
+            );
+          }
           didWarnAboutMaps = true;
         }
       }

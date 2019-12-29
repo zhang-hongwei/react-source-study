@@ -12,18 +12,21 @@ import type {ReactNativeBaseComponentViewConfig} from './ReactNativeTypes';
 import invariant from 'shared/invariant';
 
 // Modules provided by RN:
-import UIManager from 'UIManager';
-import deepFreezeAndThrowOnMutationInDev from 'deepFreezeAndThrowOnMutationInDev';
+import {
+  ReactNativeViewConfigRegistry,
+  UIManager,
+  deepFreezeAndThrowOnMutationInDev,
+} from 'react-native/Libraries/ReactPrivate/ReactNativePrivateInterface';
 
-import * as ReactNativeViewConfigRegistry from 'ReactNativeViewConfigRegistry';
-import * as ReactNativeAttributePayload from './ReactNativeAttributePayload';
+import {create, diff} from './ReactNativeAttributePayload';
 import {
   precacheFiberNode,
   uncacheFiberNode,
   updateFiberProps,
 } from './ReactNativeComponentTree';
 import ReactNativeFiberHostComponent from './ReactNativeFiberHostComponent';
-import * as ReactNativeFrameScheduling from './ReactNativeFrameScheduling';
+
+const {get: getViewConfigForType} = ReactNativeViewConfigRegistry;
 
 export type Type = string;
 export type Props = Object;
@@ -92,7 +95,7 @@ export function createInstance(
   internalInstanceHandle: Object,
 ): Instance {
   const tag = allocateTag();
-  const viewConfig = ReactNativeViewConfigRegistry.get(type);
+  const viewConfig = getViewConfigForType(type);
 
   if (__DEV__) {
     for (const key in viewConfig.validAttributes) {
@@ -102,15 +105,7 @@ export function createInstance(
     }
   }
 
-  invariant(
-    type !== 'RCTView' || !hostContext.isInAParentText,
-    'Nesting of <View> within <Text> is not currently supported.',
-  );
-
-  const updatePayload = ReactNativeAttributePayload.create(
-    props,
-    viewConfig.validAttributes,
-  );
+  const updatePayload = create(props, viewConfig.validAttributes);
 
   UIManager.createView(
     tag, // reactTag
@@ -232,12 +227,8 @@ export function resetAfterCommit(containerInfo: Container): void {
   // Noop
 }
 
-export const now = ReactNativeFrameScheduling.now;
 export const isPrimaryRenderer = true;
-export const scheduleDeferredCallback =
-  ReactNativeFrameScheduling.scheduleDeferredCallback;
-export const cancelDeferredCallback =
-  ReactNativeFrameScheduling.cancelDeferredCallback;
+export const warnsIfNotActing = true;
 
 export const scheduleTimeout = setTimeout;
 export const cancelTimeout = clearTimeout;
@@ -341,11 +332,7 @@ export function commitUpdate(
 
   updateFiberProps(instance._nativeTag, newProps);
 
-  const updatePayload = ReactNativeAttributePayload.diff(
-    oldProps,
-    newProps,
-    viewConfig.validAttributes,
-  );
+  const updatePayload = diff(oldProps, newProps, viewConfig.validAttributes);
 
   // Avoid the overhead of bridge calls if there's no update.
   // This is an expensive no-op for Android, and causes an unnecessary
@@ -453,7 +440,16 @@ export function resetTextContent(instance: Instance): void {
 }
 
 export function hideInstance(instance: Instance): void {
-  throw new Error('Not yet implemented.');
+  const viewConfig = instance.viewConfig;
+  const updatePayload = create(
+    {style: {display: 'none'}},
+    viewConfig.validAttributes,
+  );
+  UIManager.updateView(
+    instance._nativeTag,
+    viewConfig.uiViewClassName,
+    updatePayload,
+  );
 }
 
 export function hideTextInstance(textInstance: TextInstance): void {
@@ -461,7 +457,17 @@ export function hideTextInstance(textInstance: TextInstance): void {
 }
 
 export function unhideInstance(instance: Instance, props: Props): void {
-  throw new Error('Not yet implemented.');
+  const viewConfig = instance.viewConfig;
+  const updatePayload = diff(
+    {...props, style: [props.style, {display: 'none'}]},
+    props,
+    viewConfig.validAttributes,
+  );
+  UIManager.updateView(
+    instance._nativeTag,
+    viewConfig.uiViewClassName,
+    updatePayload,
+  );
 }
 
 export function unhideTextInstance(
@@ -469,4 +475,48 @@ export function unhideTextInstance(
   text: string,
 ): void {
   throw new Error('Not yet implemented.');
+}
+
+export function DEPRECATED_mountResponderInstance(
+  responder: any,
+  responderInstance: any,
+  props: Object,
+  state: Object,
+  instance: Instance,
+) {
+  throw new Error('Not yet implemented.');
+}
+
+export function DEPRECATED_unmountResponderInstance(
+  responderInstance: any,
+): void {
+  throw new Error('Not yet implemented.');
+}
+
+export function getFundamentalComponentInstance(fundamentalInstance) {
+  throw new Error('Not yet implemented.');
+}
+
+export function mountFundamentalComponent(fundamentalInstance) {
+  throw new Error('Not yet implemented.');
+}
+
+export function shouldUpdateFundamentalComponent(fundamentalInstance) {
+  throw new Error('Not yet implemented.');
+}
+
+export function updateFundamentalComponent(fundamentalInstance) {
+  throw new Error('Not yet implemented.');
+}
+
+export function unmountFundamentalComponent(fundamentalInstance) {
+  throw new Error('Not yet implemented.');
+}
+
+export function getInstanceFromNode(node) {
+  throw new Error('Not yet implemented.');
+}
+
+export function beforeRemoveInstance(instance) {
+  // noop
 }

@@ -8,7 +8,6 @@
  */
 
 import React from 'react';
-import warningWithoutStack from 'shared/warningWithoutStack';
 
 import {createLRU} from './LRU';
 
@@ -46,11 +45,12 @@ const Pending = 0;
 const Resolved = 1;
 const Rejected = 2;
 
-const currentOwner =
-  React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.ReactCurrentOwner;
+const ReactCurrentDispatcher =
+  React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED
+    .ReactCurrentDispatcher;
 
 function readContext(Context, observedBits) {
-  const dispatcher = currentOwner.currentDispatcher;
+  const dispatcher = ReactCurrentDispatcher.current;
   if (dispatcher === null) {
     throw new Error(
       'react-cache: read and preload may only be called from within a ' +
@@ -63,18 +63,21 @@ function readContext(Context, observedBits) {
 
 function identityHashFn(input) {
   if (__DEV__) {
-    warningWithoutStack(
-      typeof input === 'string' ||
-        typeof input === 'number' ||
-        typeof input === 'boolean' ||
-        input === undefined ||
-        input === null,
-      'Invalid key type. Expected a string, number, symbol, or boolean, ' +
-        'but instead received: %s' +
-        '\n\nTo use non-primitive values as keys, you must pass a hash ' +
-        'function as the second argument to createResource().',
-      input,
-    );
+    if (
+      typeof input !== 'string' &&
+      typeof input !== 'number' &&
+      typeof input !== 'boolean' &&
+      input !== undefined &&
+      input !== null
+    ) {
+      console.error(
+        'Invalid key type. Expected a string, number, symbol, or boolean, ' +
+          'but instead received: %s' +
+          '\n\nTo use non-primitive values as keys, you must pass a hash ' +
+          'function as the second argument to createResource().',
+        input,
+      );
+    }
   }
   return input;
 }

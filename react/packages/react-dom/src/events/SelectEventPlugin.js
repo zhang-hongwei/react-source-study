@@ -5,9 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {accumulateTwoPhaseDispatches} from 'events/EventPropagators';
+import {accumulateTwoPhaseDispatches} from 'legacy-events/EventPropagators';
 import {canUseDOM} from 'shared/ExecutionEnvironment';
-import SyntheticEvent from 'events/SyntheticEvent';
+import SyntheticEvent from 'legacy-events/SyntheticEvent';
 import isTextInputElement from 'shared/isTextInputElement';
 import shallowEqual from 'shared/shallowEqual';
 
@@ -25,7 +25,7 @@ import {
 import {isListeningToAllDependencies} from './ReactBrowserEventEmitter';
 import getActiveElement from '../client/getActiveElement';
 import {getNodeFromInstance} from '../client/ReactDOMComponentTree';
-import * as ReactInputSelection from '../client/ReactInputSelection';
+import {hasSelectionCapabilities} from '../client/ReactInputSelection';
 import {DOCUMENT_NODE} from '../shared/HTMLNodeType';
 
 const skipSelectionChangeEvent =
@@ -66,10 +66,7 @@ let mouseDown = false;
  * @return {object}
  */
 function getSelection(node) {
-  if (
-    'selectionStart' in node &&
-    ReactInputSelection.hasSelectionCapabilities(node)
-  ) {
+  if ('selectionStart' in node && hasSelectionCapabilities(node)) {
     return {
       start: node.selectionStart,
       end: node.selectionEnd,
@@ -168,6 +165,7 @@ const SelectEventPlugin = {
     targetInst,
     nativeEvent,
     nativeEventTarget,
+    eventSystemFlags,
   ) {
     const doc = getEventTargetDocument(nativeEventTarget);
     // Track whether all listeners exists for this plugin. If none exist, we do

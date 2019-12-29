@@ -18,17 +18,37 @@ const configTemplate = fs
   .readFileSync(__dirname + '/config/flowconfig')
   .toString();
 
-function writeConfig(renderer) {
+function writeConfig(renderer, isServerSupported) {
   const folder = __dirname + '/' + renderer;
   mkdirp.sync(folder);
 
-  const config = configTemplate.replace(
-    '%REACT_RENDERER_FLOW_OPTIONS%',
-    `
+  const serverRenderer = isServerSupported ? renderer : 'custom';
+  const config = configTemplate
+    .replace(
+      '%REACT_RENDERER_FLOW_OPTIONS%',
+      `
 module.name_mapper='react-reconciler/inline.${renderer}$$' -> 'react-reconciler/inline-typed'
 module.name_mapper='ReactFiberHostConfig$$' -> 'forks/ReactFiberHostConfig.${renderer}'
+module.name_mapper='react-server/inline.${renderer}$$' -> 'react-server/inline-typed'
+module.name_mapper='react-server/flight.inline.${renderer}$$' -> 'react-server/flight.inline-typed'
+module.name_mapper='ReactServerHostConfig$$' -> 'forks/ReactServerHostConfig.${serverRenderer}'
+module.name_mapper='ReactServerFormatConfig$$' -> 'forks/ReactServerFormatConfig.${serverRenderer}'
+module.name_mapper='react-flight/inline.${renderer}$$' -> 'react-flight/inline-typed'
+module.name_mapper='ReactFlightClientHostConfig$$' -> 'forks/ReactFlightClientHostConfig.${serverRenderer}'
     `.trim(),
-  );
+    )
+    .replace(
+      '%REACT_RENDERER_FLOW_IGNORES%',
+      renderer === 'dom' || renderer === 'dom-browser'
+        ? ''
+        : // If we're not checking DOM, ignore the DOM package since it
+          // won't be consistent.
+          `
+    .*/packages/react-dom/.*
+    .*/packages/.*/forks/.*.dom.js
+    .*/packages/.*/forks/.*.dom-browser.js
+    `.trim(),
+    );
 
   const disclaimer = `
 # ---------------------------------------------------------------#
@@ -61,6 +81,6 @@ ${disclaimer}
 // so that we can run those checks in parallel if we want.
 inlinedHostConfigs.forEach(rendererInfo => {
   if (rendererInfo.isFlowTyped) {
-    writeConfig(rendererInfo.shortName);
+    writeConfig(rendererInfo.shortName, rendererInfo.isServerSupported);
   }
 });

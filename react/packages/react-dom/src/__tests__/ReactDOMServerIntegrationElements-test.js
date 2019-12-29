@@ -16,17 +16,20 @@ const TEXT_NODE_TYPE = 3;
 let React;
 let ReactDOM;
 let ReactDOMServer;
+let ReactTestUtils;
 
 function initModules() {
   jest.resetModuleRegistry();
   React = require('react');
   ReactDOM = require('react-dom');
   ReactDOMServer = require('react-dom/server');
+  ReactTestUtils = require('react-dom/test-utils');
 
   // Make them available to the helpers.
   return {
     ReactDOM,
     ReactDOMServer,
+    ReactTestUtils,
   };
 }
 
@@ -143,7 +146,7 @@ describe('ReactDOMServerIntegration', () => {
         // so that it gets deduplicated later, and doesn't fail the test.
         expect(() => {
           ReactDOM.render(<nonstandard />, document.createElement('div'));
-        }).toWarnDev('The tag <nonstandard> is unrecognized in this browser.');
+        }).toErrorDev('The tag <nonstandard> is unrecognized in this browser.');
 
         const e = await render(<nonstandard>Text</nonstandard>);
         expect(e.tagName).toBe('NONSTANDARD');
@@ -644,11 +647,11 @@ describe('ReactDOMServerIntegration', () => {
             },
           };
         };
-        checkFooDiv(await render(<FactoryComponent />));
+        checkFooDiv(await render(<FactoryComponent />, 1));
       });
     });
 
-    describe('component hierarchies', async function() {
+    describe('component hierarchies', function() {
       itRenders('single child hierarchies of components', async render => {
         const Component = props => <div>{props.children}</div>;
         let e = await render(
@@ -979,7 +982,7 @@ describe('ReactDOMServerIntegration', () => {
           let EmptyComponent = {};
           expect(() => {
             EmptyComponent = <EmptyComponent />;
-          }).toWarnDev(
+          }).toErrorDev(
             'Warning: React.createElement: type is invalid -- expected a string ' +
               '(for built-in components) or a class/function (for composite ' +
               'components) but got: object. You likely forgot to export your ' +
@@ -1003,7 +1006,7 @@ describe('ReactDOMServerIntegration', () => {
           let NullComponent = null;
           expect(() => {
             NullComponent = <NullComponent />;
-          }).toWarnDev(
+          }).toErrorDev(
             'Warning: React.createElement: type is invalid -- expected a string ' +
               '(for built-in components) or a class/function (for composite ' +
               'components) but got: null.',
@@ -1021,7 +1024,7 @@ describe('ReactDOMServerIntegration', () => {
           let UndefinedComponent = undefined;
           expect(() => {
             UndefinedComponent = <UndefinedComponent />;
-          }).toWarnDev(
+          }).toErrorDev(
             'Warning: React.createElement: type is invalid -- expected a string ' +
               '(for built-in components) or a class/function (for composite ' +
               'components) but got: undefined. You likely forgot to export your ' +

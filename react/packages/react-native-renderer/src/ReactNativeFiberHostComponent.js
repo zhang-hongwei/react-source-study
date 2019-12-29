@@ -11,16 +11,18 @@ import type {
   MeasureInWindowOnSuccessCallback,
   MeasureLayoutOnSuccessCallback,
   MeasureOnSuccessCallback,
-  NativeMethodsMixinType,
+  NativeMethods,
   ReactNativeBaseComponentViewConfig,
 } from './ReactNativeTypes';
 import type {Instance} from './ReactNativeHostConfig';
 
 // Modules provided by RN:
-import TextInputState from 'TextInputState';
-import UIManager from 'UIManager';
+import {
+  TextInputState,
+  UIManager,
+} from 'react-native/Libraries/ReactPrivate/ReactNativePrivateInterface';
 
-import * as ReactNativeAttributePayload from './ReactNativeAttributePayload';
+import {create} from './ReactNativeAttributePayload';
 import {
   mountSafeCallback_NOT_REALLY_SAFE,
   warnForStyleProps,
@@ -67,13 +69,32 @@ class ReactNativeFiberHostComponent {
   }
 
   measureLayout(
-    relativeToNativeNode: number,
+    relativeToNativeNode: number | ReactNativeFiberHostComponent,
     onSuccess: MeasureLayoutOnSuccessCallback,
-    onFail: () => void /* currently unused */,
+    onFail?: () => void /* currently unused */,
   ) {
+    let relativeNode: ?number;
+
+    if (typeof relativeToNativeNode === 'number') {
+      // Already a node handle
+      relativeNode = relativeToNativeNode;
+    } else if (relativeToNativeNode._nativeTag) {
+      relativeNode = relativeToNativeNode._nativeTag;
+    }
+
+    if (relativeNode == null) {
+      if (__DEV__) {
+        console.error(
+          'Warning: ref.measureLayout must be called with a node handle or a ref to a native component.',
+        );
+      }
+
+      return;
+    }
+
     UIManager.measureLayout(
       this._nativeTag,
-      relativeToNativeNode,
+      relativeNode,
       mountSafeCallback_NOT_REALLY_SAFE(this, onFail),
       mountSafeCallback_NOT_REALLY_SAFE(this, onSuccess),
     );
@@ -84,10 +105,7 @@ class ReactNativeFiberHostComponent {
       warnForStyleProps(nativeProps, this.viewConfig.validAttributes);
     }
 
-    const updatePayload = ReactNativeAttributePayload.create(
-      nativeProps,
-      this.viewConfig.validAttributes,
-    );
+    const updatePayload = create(nativeProps, this.viewConfig.validAttributes);
 
     // Avoid the overhead of bridge calls if there's no update.
     // This is an expensive no-op for Android, and causes an unnecessary
@@ -103,6 +121,6 @@ class ReactNativeFiberHostComponent {
 }
 
 // eslint-disable-next-line no-unused-expressions
-(ReactNativeFiberHostComponent.prototype: NativeMethodsMixinType);
+(ReactNativeFiberHostComponent.prototype: NativeMethods);
 
 export default ReactNativeFiberHostComponent;

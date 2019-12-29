@@ -7,7 +7,7 @@
 
 import getActiveElement from './getActiveElement';
 
-import * as ReactDOMSelection from './ReactDOMSelection';
+import {getOffsets, setOffsets} from './ReactDOMSelection';
 import {ELEMENT_NODE, TEXT_NODE} from '../shared/HTMLNodeType';
 
 function isTextNode(node) {
@@ -40,15 +40,29 @@ function isInDocument(node) {
   );
 }
 
+function isSameOriginFrame(iframe) {
+  try {
+    // Accessing the contentDocument of a HTMLIframeElement can cause the browser
+    // to throw, e.g. if it has a cross-origin src attribute.
+    // Safari will show an error in the console when the access results in "Blocked a frame with origin". e.g:
+    // iframe.contentDocument.defaultView;
+    // A safety way is to access one of the cross origin properties: Window or Location
+    // Which might result in "SecurityError" DOM Exception and it is compatible to Safari.
+    // https://html.spec.whatwg.org/multipage/browsers.html#integration-with-idl
+
+    return typeof iframe.contentWindow.location.href === 'string';
+  } catch (err) {
+    return false;
+  }
+}
+
 function getActiveElementDeep() {
   let win = window;
   let element = getActiveElement();
   while (element instanceof win.HTMLIFrameElement) {
-    // Accessing the contentDocument of a HTMLIframeElement can cause the browser
-    // to throw, e.g. if it has a cross-origin src attribute
-    try {
-      win = element.contentDocument.defaultView;
-    } catch (e) {
+    if (isSameOriginFrame(element)) {
+      win = element.contentWindow;
+    } else {
       return element;
     }
     element = getActiveElement(win.document);
@@ -86,6 +100,8 @@ export function hasSelectionCapabilities(elem) {
 export function getSelectionInformation() {
   const focusedElem = getActiveElementDeep();
   return {
+    // Used by Flare
+    activeElementDetached: null,
     focusedElem: focusedElem,
     selectionRange: hasSelectionCapabilities(focusedElem)
       ? getSelection(focusedElem)
@@ -152,7 +168,7 @@ export function getSelection(input) {
     };
   } else {
     // Content editable or old IE textarea.
-    selection = ReactDOMSelection.getOffsets(input);
+    selection = getOffsets(input);
   }
 
   return selection || {start: 0, end: 0};
@@ -174,6 +190,6 @@ export function setSelection(input, offsets) {
     input.selectionStart = start;
     input.selectionEnd = Math.min(end, input.value.length);
   } else {
-    ReactDOMSelection.setOffsets(input, offsets);
+    setOffsets(input, offsets);
   }
 }

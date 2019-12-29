@@ -11,9 +11,6 @@ import {REACT_PROVIDER_TYPE, REACT_CONTEXT_TYPE} from 'shared/ReactSymbols';
 
 import type {ReactContext} from 'shared/ReactTypes';
 
-import warningWithoutStack from 'shared/warningWithoutStack';
-import warning from 'shared/warning';
-
 export function createContext<T>(
   defaultValue: T,
   calculateChangedBits: ?(a: T, b: T) => number,
@@ -22,13 +19,16 @@ export function createContext<T>(
     calculateChangedBits = null;
   } else {
     if (__DEV__) {
-      warningWithoutStack(
-        calculateChangedBits === null ||
-          typeof calculateChangedBits === 'function',
-        'createContext: Expected the optional second argument to be a ' +
-          'function. Instead received: %s',
-        calculateChangedBits,
-      );
+      if (
+        calculateChangedBits !== null &&
+        typeof calculateChangedBits !== 'function'
+      ) {
+        console.error(
+          'createContext: Expected the optional second argument to be a ' +
+            'function. Instead received: %s',
+          calculateChangedBits,
+        );
+      }
     }
   }
 
@@ -42,6 +42,9 @@ export function createContext<T>(
     // Secondary renderers store their context values on separate fields.
     _currentValue: defaultValue,
     _currentValue2: defaultValue,
+    // Used to track how many concurrent renderers this context currently
+    // supports within in a single renderer. Such as parallel server rendering.
+    _threadCount: 0,
     // These are circular
     Provider: (null: any),
     Consumer: (null: any),
@@ -70,8 +73,7 @@ export function createContext<T>(
         get() {
           if (!hasWarnedAboutUsingConsumerProvider) {
             hasWarnedAboutUsingConsumerProvider = true;
-            warning(
-              false,
+            console.error(
               'Rendering <Context.Consumer.Provider> is not supported and will be removed in ' +
                 'a future major release. Did you mean to render <Context.Provider> instead?',
             );
@@ -98,12 +100,19 @@ export function createContext<T>(
           context._currentValue2 = _currentValue2;
         },
       },
+      _threadCount: {
+        get() {
+          return context._threadCount;
+        },
+        set(_threadCount) {
+          context._threadCount = _threadCount;
+        },
+      },
       Consumer: {
         get() {
           if (!hasWarnedAboutUsingNestedContextConsumers) {
             hasWarnedAboutUsingNestedContextConsumers = true;
-            warning(
-              false,
+            console.error(
               'Rendering <Context.Consumer.Consumer> is not supported and will be removed in ' +
                 'a future major release. Did you mean to render <Context.Consumer> instead?',
             );
