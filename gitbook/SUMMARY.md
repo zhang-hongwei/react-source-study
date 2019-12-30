@@ -19,6 +19,8 @@
 
   * [ReactContext](./pages/react/ReactContext.md)
 
+  * [ReactHooks](./pages/react/ReactHooks.md)
+
   * [Fragment](./pages/react/Fragment.md)
 
   * [StrictMode](./pages/react/StrictMode.md)

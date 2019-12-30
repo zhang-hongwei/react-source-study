@@ -1,7 +1,7 @@
 # ReactDom.js
 
 1. 定义 ReactDom 对象
-2. 到处 ReactDom 对象
+2. 导出 ReactDom 对象
 
 ## render
 

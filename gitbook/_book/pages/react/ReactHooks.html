@@ -1,0 +1,580 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>ReactHooks · GitBook</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.2">
+        
+        
+        
+    
+    <link rel="stylesheet" href="../../gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-chapter-fold/chapter-fold.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-back-to-top-button/plugin.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-code/plugin.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-splitter/splitter.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../../gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="../../gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    <link rel="next" href="Fragment.html" />
+    
+    
+    <link rel="prev" href="ReactContext.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="../../">
+            
+                <a href="../../">
+            
+                    
+                    目录
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="React.html">
+            
+                <a href="React.html">
+            
+                    
+                    React
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1" data-path="ReactElement.html">
+            
+                <a href="ReactElement.html">
+            
+                    
+                    ReactElement
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2" data-path="ReactBaseClasses.html">
+            
+                <a href="ReactBaseClasses.html">
+            
+                    
+                    ReactBaseClasses
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.3" data-path="ReactCreateRef.html">
+            
+                <a href="ReactCreateRef.html">
+            
+                    
+                    ReactCreateRef
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.4" data-path="ForwardRef.html">
+            
+                <a href="ForwardRef.html">
+            
+                    
+                    ForwardRef
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.5" data-path="ReactChildren.html">
+            
+                <a href="ReactChildren.html">
+            
+                    
+                    ReactChildren
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.6" data-path="ReactLazy.html">
+            
+                <a href="ReactLazy.html">
+            
+                    
+                    ReactLazy
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.7" data-path="ReactContext.html">
+            
+                <a href="ReactContext.html">
+            
+                    
+                    ReactContext
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="1.2.8" data-path="ReactHooks.html">
+            
+                <a href="ReactHooks.html">
+            
+                    
+                    ReactHooks
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.9" data-path="Fragment.html">
+            
+                <a href="Fragment.html">
+            
+                    
+                    Fragment
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.10" data-path="StrictMode.html">
+            
+                <a href="StrictMode.html">
+            
+                    
+                    StrictMode
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.11" data-path="Suspense.html">
+            
+                <a href="Suspense.html">
+            
+                    
+                    Suspense
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.12" data-path="Version.html">
+            
+                <a href="Version.html">
+            
+                    
+                    Version
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3" data-path="../reactDom/ReactDom.html">
+            
+                <a href="../reactDom/ReactDom.html">
+            
+                    
+                    ReactDom
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="../.." >ReactHooks</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <h1 id="reacthooks">ReactHooks</h1>
+<pre><code class="lang-js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">resolveDispatcher</span>(<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">const</span> dispatcher = ReactCurrentDispatcher.current;
+    invariant(
+        dispatcher !== <span class="hljs-literal">null</span>,
+        <span class="hljs-string">&quot;Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for&quot;</span> +
+            <span class="hljs-string">&quot; one of the following reasons:\n&quot;</span> +
+            <span class="hljs-string">&quot;1. You might have mismatching versions of React and the renderer (such as React DOM)\n&quot;</span> +
+            <span class="hljs-string">&quot;2. You might be breaking the Rules of Hooks\n&quot;</span> +
+            <span class="hljs-string">&quot;3. You might have more than one copy of React in the same app\n&quot;</span> +
+            <span class="hljs-string">&quot;See https://fb.me/react-invalid-hook-call for tips about how to debug and fix this problem.&quot;</span>
+    );
+    <span class="hljs-keyword">return</span> dispatcher;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">useContext</span>(<span class="hljs-params">Context, unstable_observedBits</span>) </span>{
+    <span class="hljs-keyword">const</span> dispatcher = resolveDispatcher();
+    <span class="hljs-keyword">if</span> (__DEV__) {
+        <span class="hljs-keyword">if</span> (unstable_observedBits !== <span class="hljs-literal">undefined</span>) {
+            <span class="hljs-built_in">console</span>.error(
+                <span class="hljs-string">&quot;useContext() second argument is reserved for future &quot;</span> +
+                    <span class="hljs-string">&quot;use in React. Passing it is not supported. &quot;</span> +
+                    <span class="hljs-string">&quot;You passed: %s.%s&quot;</span>,
+                unstable_observedBits,
+                <span class="hljs-keyword">typeof</span> unstable_observedBits === <span class="hljs-string">&quot;number&quot;</span> &amp;&amp;
+                    <span class="hljs-built_in">Array</span>.isArray(<span class="hljs-built_in">arguments</span>[<span class="hljs-number">2</span>])
+                    ? <span class="hljs-string">&quot;\n\nDid you call array.map(useContext)? &quot;</span> +
+                          <span class="hljs-string">&quot;Calling Hooks inside a loop is not supported. &quot;</span> +
+                          <span class="hljs-string">&quot;Learn more at https://fb.me/rules-of-hooks&quot;</span>
+                    : <span class="hljs-string">&quot;&quot;</span>
+            );
+        }
+
+        <span class="hljs-comment">// <span class="hljs-doctag">TODO:</span> add a more generic warning for invalid values.</span>
+        <span class="hljs-keyword">if</span> (Context._context !== <span class="hljs-literal">undefined</span>) {
+            <span class="hljs-keyword">const</span> realContext = Context._context;
+            <span class="hljs-comment">// Don&apos;t deduplicate because this legitimately causes bugs</span>
+            <span class="hljs-comment">// and nobody should be using this in existing code.</span>
+            <span class="hljs-keyword">if</span> (realContext.Consumer === Context) {
+                <span class="hljs-built_in">console</span>.error(
+                    <span class="hljs-string">&quot;Calling useContext(Context.Consumer) is not supported, may cause bugs, and will be &quot;</span> +
+                        <span class="hljs-string">&quot;removed in a future major release. Did you mean to call useContext(Context) instead?&quot;</span>
+                );
+            } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (realContext.Provider === Context) {
+                <span class="hljs-built_in">console</span>.error(
+                    <span class="hljs-string">&quot;Calling useContext(Context.Provider) is not supported. &quot;</span> +
+                        <span class="hljs-string">&quot;Did you mean to call useContext(Context) instead?&quot;</span>
+                );
+            }
+        }
+    }
+    <span class="hljs-keyword">return</span> dispatcher.useContext(Context, unstable_observedBits);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">useState</span>(<span class="hljs-params">initialState</span>) </span>{
+    <span class="hljs-keyword">const</span> dispatcher = resolveDispatcher();
+    <span class="hljs-keyword">return</span> dispatcher.useState(initialState);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">useReducer</span>(<span class="hljs-params">reducer, initialArg, init</span>) </span>{
+    <span class="hljs-keyword">const</span> dispatcher = resolveDispatcher();
+    <span class="hljs-keyword">return</span> dispatcher.useReducer(reducer, initialArg, init);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">useRef</span>(<span class="hljs-params">initialValue</span>) </span>{
+    <span class="hljs-keyword">const</span> dispatcher = resolveDispatcher();
+    <span class="hljs-keyword">return</span> dispatcher.useRef(initialValue);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">useEffect</span>(<span class="hljs-params">create, inputs</span>) </span>{
+    <span class="hljs-keyword">const</span> dispatcher = resolveDispatcher();
+    <span class="hljs-keyword">return</span> dispatcher.useEffect(create, inputs);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">useLayoutEffect</span>(<span class="hljs-params">create, inputs</span>) </span>{
+    <span class="hljs-keyword">const</span> dispatcher = resolveDispatcher();
+    <span class="hljs-keyword">return</span> dispatcher.useLayoutEffect(create, inputs);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">useCallback</span>(<span class="hljs-params">callback, inputs</span>) </span>{
+    <span class="hljs-keyword">const</span> dispatcher = resolveDispatcher();
+    <span class="hljs-keyword">return</span> dispatcher.useCallback(callback, inputs);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">useMemo</span>(<span class="hljs-params">create, inputs</span>) </span>{
+    <span class="hljs-keyword">const</span> dispatcher = resolveDispatcher();
+    <span class="hljs-keyword">return</span> dispatcher.useMemo(create, inputs);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">useImperativeHandle</span>(<span class="hljs-params">ref, create, inputs</span>) </span>{
+    <span class="hljs-keyword">const</span> dispatcher = resolveDispatcher();
+    <span class="hljs-keyword">return</span> dispatcher.useImperativeHandle(ref, create, inputs);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">useDebugValue</span>(<span class="hljs-params">value, formatterFn</span>) </span>{
+    <span class="hljs-keyword">if</span> (__DEV__) {
+        <span class="hljs-keyword">const</span> dispatcher = resolveDispatcher();
+        <span class="hljs-keyword">return</span> dispatcher.useDebugValue(value, formatterFn);
+    }
+}
+
+<span class="hljs-keyword">const</span> emptyObject = {};
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">useResponder</span>(<span class="hljs-params">responder, listenerProps</span>) </span>{
+    <span class="hljs-keyword">const</span> dispatcher = resolveDispatcher();
+    <span class="hljs-keyword">if</span> (__DEV__) {
+        <span class="hljs-keyword">if</span> (responder == <span class="hljs-literal">null</span> || responder.$$<span class="hljs-keyword">typeof</span> !== REACT_RESPONDER_TYPE) {
+            <span class="hljs-built_in">console</span>.error(
+                <span class="hljs-string">&quot;useResponder: invalid first argument. Expected an event responder, but instead got %s&quot;</span>,
+                responder
+            );
+            <span class="hljs-keyword">return</span>;
+        }
+    }
+    <span class="hljs-keyword">return</span> dispatcher.useResponder(responder, listenerProps || emptyObject);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">useTransition</span>(<span class="hljs-params">lconfig</span>) </span>{
+    <span class="hljs-keyword">const</span> dispatcher = resolveDispatcher();
+    <span class="hljs-keyword">return</span> dispatcher.useTransition(config);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">useDeferredValue</span>(<span class="hljs-params">value, config</span>) </span>{
+    <span class="hljs-keyword">const</span> dispatcher = resolveDispatcher();
+    <span class="hljs-keyword">return</span> dispatcher.useDeferredValue(value, config);
+}
+</code></pre>
+
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="ReactContext.html" class="navigation navigation-prev " aria-label="Previous page: ReactContext">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+                <a href="Fragment.html" class="navigation navigation-next " aria-label="Next page: Fragment">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"ReactHooks","level":"1.2.8","depth":2,"next":{"title":"Fragment","level":"1.2.9","depth":2,"path":"pages/react/Fragment.md","ref":"./pages/react/Fragment.md","articles":[]},"previous":{"title":"ReactContext","level":"1.2.7","depth":2,"path":"pages/react/ReactContext.md","ref":"./pages/react/ReactContext.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["chapter-fold","back-to-top-button","code","splitter","livereload"],"pluginsConfig":{"chapter-fold":{},"livereload":{},"splitter":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"code":{"copyButtons":true},"fontsettings":{"theme":"white","family":"sans","size":2},"highlight":{},"back-to-top-button":{},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"pages/react/ReactHooks.md","mtime":"2019-12-30T02:17:44.199Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2019-12-30T02:13:13.267Z"},"basePath":"../..","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <script src="../../gitbook/gitbook.js"></script>
+    <script src="../../gitbook/theme.js"></script>
+    
+        
+        <script src="../../gitbook/gitbook-plugin-chapter-fold/chapter-fold.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-back-to-top-button/plugin.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-code/plugin.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-splitter/splitter.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-livereload/plugin.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-sharing/buttons.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+
