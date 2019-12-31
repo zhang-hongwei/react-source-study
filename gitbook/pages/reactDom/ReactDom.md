@@ -1,4 +1,4 @@
-# ReactDom.js
+# ReactDom
 
 1. 定义 ReactDom 对象
 2. 导出 ReactDom 对象
@@ -27,75 +27,46 @@ function legacyRenderSubtreeIntoContainer(
     forceHydrate,
     callback
 ) {
-    // TODO: Ensure all entry points contain this check
-    invariant(
-        isValidContainer(container),
-        "Target container is not a DOM element."
-    );
-
-    if (__DEV__) {
-        topLevelUpdateWarnings(container);
-    }
-
-    // TODO: Without `any` type, Flow says "Property cannot be accessed on any
-    // member of intersection type." Whyyyyyy.
-    let root;
+    let root = container._reactRootContainer;
+    let fiberRoot;
     if (!root) {
         // Initial mount
         root = container._reactRootContainer = legacyCreateRootFromDOMContainer(
             container,
             forceHydrate
         );
+        fiberRoot = root._internalRoot;
         if (typeof callback === "function") {
             const originalCallback = callback;
             callback = function() {
-                const instance = DOMRenderer.getPublicRootInstance(
-                    root._internalRoot
-                );
+                const instance = getPublicRootInstance(fiberRoot);
                 originalCallback.call(instance);
             };
         }
         // Initial mount should not be batched.
-        DOMRenderer.unbatchedUpdates(() => {
-            if (parentComponent != null) {
-                root.legacy_renderSubtreeIntoContainer(
-                    parentComponent,
-                    children,
-                    callback
-                );
-            } else {
-                root.render(children, callback);
-            }
+        unbatchedUpdates(() => {
+            updateContainer(children, fiberRoot, parentComponent, callback);
         });
     } else {
+        fiberRoot = root._internalRoot;
         if (typeof callback === "function") {
             const originalCallback = callback;
             callback = function() {
-                const instance = DOMRenderer.getPublicRootInstance(
-                    root._internalRoot
-                );
+                const instance = getPublicRootInstance(fiberRoot);
                 originalCallback.call(instance);
             };
         }
         // Update
-        if (parentComponent != null) {
-            root.legacy_renderSubtreeIntoContainer(
-                parentComponent,
-                children,
-                callback
-            );
-        } else {
-            root.render(children, callback);
-        }
+        updateContainer(children, fiberRoot, parentComponent, callback);
     }
-    return DOMRenderer.getPublicRootInstance(root._internalRoot);
+    return getPublicRootInstance(fiberRoot);
 }
 ```
 
 ## legacyCreateRootFromDOMContainer
 
 ```js
-function legacyCreateRootFromDOMContainer(container, forceHydrate): Root {
+function legacyCreateRootFromDOMContainer(container, forceHydrate) {
     const shouldHydrate =
         forceHydrate || shouldHydrateDueToLegacyHeuristic(container);
     // First clear any existing content.
@@ -103,37 +74,32 @@ function legacyCreateRootFromDOMContainer(container, forceHydrate): Root {
         let warned = false;
         let rootSibling;
         while ((rootSibling = container.lastChild)) {
-            if (__DEV__) {
-                if (
-                    !warned &&
-                    rootSibling.nodeType === ELEMENT_NODE &&
-                    (rootSibling: any).hasAttribute(ROOT_ATTRIBUTE_NAME)
-                ) {
-                    warned = true;
-                    warningWithoutStack(
-                        false,
-                        "render(): Target node has markup rendered by React, but there " +
-                            "are unrelated nodes as well. This is most commonly caused by " +
-                            "white-space inserted around server-rendered markup."
-                    );
-                }
-            }
             container.removeChild(rootSibling);
         }
     }
-    if (__DEV__) {
-        if (shouldHydrate && !forceHydrate && !warnedAboutHydrateAPI) {
-            warnedAboutHydrateAPI = true;
-            lowPriorityWarning(
-                false,
-                "render(): Calling ReactDOM.render() to hydrate server-rendered markup " +
-                    "will stop working in React v17. Replace the ReactDOM.render() call " +
-                    "with ReactDOM.hydrate() if you want React to attach to the server HTML."
-            );
-        }
+
+    return createLegacyRoot(
+        container,
+        shouldHydrate
+            ? {
+                  hydrate: true
+              }
+            : undefined
+    );
+}
+```
+
+## findDOMNode
+
+```js
+function findDOMNode(componentOrElement) {
+    if (componentOrElement == null) {
+        return null;
     }
-    // Legacy roots are not async by default.
-    const isConcurrent = false;
-    return new ReactRoot(container, isConcurrent, shouldHydrate);
+    if (componentOrElement.nodeType === ELEMENT_NODE) {
+        return componentOrElement;
+    }
+
+    return findHostInstance(componentOrElement);
 }
 ```
