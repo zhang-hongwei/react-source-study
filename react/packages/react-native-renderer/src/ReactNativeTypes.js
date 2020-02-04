@@ -8,7 +8,7 @@
  * @flow
  */
 
-import React, {type ElementRef, type AbstractComponent} from 'react';
+import React from 'react';
 
 export type MeasureOnSuccessCallback = (
   x: number,
@@ -89,37 +89,29 @@ class ReactNativeComponent<Props> extends React.Component<Props> {
   measure(callback: MeasureOnSuccessCallback): void {}
   measureInWindow(callback: MeasureInWindowOnSuccessCallback): void {}
   measureLayout(
-    relativeToNativeNode: number | ElementRef<HostComponent<mixed>>,
+    relativeToNativeNode: number,
     onSuccess: MeasureLayoutOnSuccessCallback,
     onFail?: () => void,
   ): void {}
   setNativeProps(nativeProps: Object): void {}
 }
 
-// This type is only used for FlowTests. It shouldn't be imported directly
-export type _InternalReactNativeComponentClass<Props> = Class<
-  ReactNativeComponent<Props>,
->;
-
 /**
  * This type keeps ReactNativeFiberHostComponent and NativeMethodsMixin in sync.
  * It can also provide types for ReactNative applications that use NMM or refs.
  */
-export type NativeMethods = {
+export type NativeMethodsMixinType = {
   blur(): void,
   focus(): void,
   measure(callback: MeasureOnSuccessCallback): void,
   measureInWindow(callback: MeasureInWindowOnSuccessCallback): void,
   measureLayout(
-    relativeToNativeNode: number | ElementRef<HostComponent<mixed>>,
+    relativeToNativeNode: number,
     onSuccess: MeasureLayoutOnSuccessCallback,
-    onFail?: () => void,
+    onFail: () => void,
   ): void,
   setNativeProps(nativeProps: Object): void,
 };
-
-export type NativeMethodsMixinType = NativeMethods;
-export type HostComponent<T> = AbstractComponent<T, $ReadOnly<NativeMethods>>;
 
 type SecretInternalsType = {
   NativeMethodsMixin: NativeMethodsMixinType,
@@ -138,11 +130,7 @@ type SecretInternalsFabricType = {
  */
 export type ReactNativeType = {
   NativeComponent: typeof ReactNativeComponent,
-  findHostInstance_DEPRECATED(
-    componentOrHandle: any,
-  ): ?ElementRef<HostComponent<mixed>>,
   findNodeHandle(componentOrHandle: any): ?number,
-  dispatchCommand(handle: any, command: string, args: Array<any>): void,
   render(
     element: React$Element<any>,
     containerTag: any,
@@ -157,44 +145,13 @@ export type ReactNativeType = {
 
 export type ReactFabricType = {
   NativeComponent: typeof ReactNativeComponent,
-  findHostInstance_DEPRECATED(componentOrHandle: any): ?HostComponent<mixed>,
   findNodeHandle(componentOrHandle: any): ?number,
-  dispatchCommand(handle: any, command: string, args: Array<any>): void,
   render(
     element: React$Element<any>,
     containerTag: any,
     callback: ?Function,
   ): any,
   unmountComponentAtNode(containerTag: number): any,
+
   __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED: SecretInternalsFabricType,
-};
-
-export type ReactNativeEventTarget = {
-  node: Object,
-  canonical: {
-    _nativeTag: number,
-    viewConfig: ReactNativeBaseComponentViewConfig<>,
-    currentProps: Object,
-    _internalInstanceHandle: Object,
-  },
-};
-
-export type ReactFaricEventTouch = {
-  identifier: number,
-  locationX: number,
-  locationY: number,
-  pageX: number,
-  pageY: number,
-  screenX: number,
-  screenY: number,
-  target: number,
-  timestamp: number,
-  force: number,
-};
-
-export type ReactFaricEvent = {
-  touches: Array<ReactFaricEventTouch>,
-  changedTouches: Array<ReactFaricEventTouch>,
-  targetTouches: Array<ReactFaricEventTouch>,
-  target: number,
 };

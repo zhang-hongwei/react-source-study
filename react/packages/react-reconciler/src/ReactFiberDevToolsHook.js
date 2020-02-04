@@ -7,23 +7,33 @@
  * @flow
  */
 
-import {enableProfilerTimer} from 'shared/ReactFeatureFlags';
-import {getCurrentTime} from './ReactFiberWorkLoop';
-import {inferPriorityFromExpirationTime} from './ReactFiberExpirationTime';
-
 import type {Fiber} from './ReactFiber';
 import type {FiberRoot} from './ReactFiberRoot';
-import type {ExpirationTime} from './ReactFiberExpirationTime';
-import type {ReactNodeList} from 'shared/ReactTypes';
 
-import {DidCapture} from 'shared/ReactSideEffectTags';
+import warningWithoutStack from 'shared/warningWithoutStack';
 
 declare var __REACT_DEVTOOLS_GLOBAL_HOOK__: Object | void;
 
-let onScheduleFiberRoot = null;
 let onCommitFiberRoot = null;
 let onCommitFiberUnmount = null;
 let hasLoggedError = false;
+
+function catchErrors(fn) {
+  return function(arg) {
+    try {
+      return fn(arg);
+    } catch (err) {
+      if (__DEV__ && !hasLoggedError) {
+        hasLoggedError = true;
+        warningWithoutStack(
+          false,
+          'React DevTools encountered an error: %s',
+          err,
+        );
+      }
+    }
+  };
+}
 
 export const isDevToolsPresent =
   typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== 'undefined';
@@ -42,7 +52,8 @@ export function injectInternals(internals: Object): boolean {
   }
   if (!hook.supportsFiber) {
     if (__DEV__) {
-      console.error(
+      warningWithoutStack(
+        false,
         'The installed version of React DevTools is too old and will not work ' +
           'with the current version of React. Please update React DevTools. ' +
           'https://fb.me/react-devtools',
@@ -54,83 +65,29 @@ export function injectInternals(internals: Object): boolean {
   try {
     const rendererID = hook.inject(internals);
     // We have successfully injected, so now it is safe to set up hooks.
-    if (__DEV__) {
-      // Only used by Fast Refresh
-      if (typeof hook.onScheduleFiberRoot === 'function') {
-        onScheduleFiberRoot = (root, children) => {
-          try {
-            hook.onScheduleFiberRoot(rendererID, root, children);
-          } catch (err) {
-            if (__DEV__ && !hasLoggedError) {
-              hasLoggedError = true;
-              console.error(
-                'React instrumentation encountered an error: %s',
-                err,
-              );
-            }
-          }
-        };
-      }
-    }
-    onCommitFiberRoot = (root, expirationTime) => {
-      try {
-        const didError = (root.current.effectTag & DidCapture) === DidCapture;
-        if (enableProfilerTimer) {
-          const currentTime = getCurrentTime();
-          const priorityLevel = inferPriorityFromExpirationTime(
-            currentTime,
-            expirationTime,
-          );
-          hook.onCommitFiberRoot(rendererID, root, priorityLevel, didError);
-        } else {
-          hook.onCommitFiberRoot(rendererID, root, undefined, didError);
-        }
-      } catch (err) {
-        if (__DEV__) {
-          if (!hasLoggedError) {
-            hasLoggedError = true;
-            console.error(
-              'React instrumentation encountered an error: %s',
-              err,
-            );
-          }
-        }
-      }
-    };
-    onCommitFiberUnmount = fiber => {
-      try {
-        hook.onCommitFiberUnmount(rendererID, fiber);
-      } catch (err) {
-        if (__DEV__) {
-          if (!hasLoggedError) {
-            hasLoggedError = true;
-            console.error(
-              'React instrumentation encountered an error: %s',
-              err,
-            );
-          }
-        }
-      }
-    };
+    onCommitFiberRoot = catchErrors(root =>
+      hook.onCommitFiberRoot(rendererID, root),
+    );
+    onCommitFiberUnmount = catchErrors(fiber =>
+      hook.onCommitFiberUnmount(rendererID, fiber),
+    );
   } catch (err) {
     // Catch all errors because it is unsafe to throw during initialization.
     if (__DEV__) {
-      console.error('React instrumentation encountered an error: %s.', err);
+      warningWithoutStack(
+        false,
+        'React DevTools encountered an error: %s.',
+        err,
+      );
     }
   }
   // DevTools exists
   return true;
 }
 
-export function onScheduleRoot(root: FiberRoot, children: ReactNodeList) {
-  if (typeof onScheduleFiberRoot === 'function') {
-    onScheduleFiberRoot(root, children);
-  }
-}
-
-export function onCommitRoot(root: FiberRoot, expirationTime: ExpirationTime) {
+export function onCommitRoot(root: FiberRoot) {
   if (typeof onCommitFiberRoot === 'function') {
-    onCommitFiberRoot(root, expirationTime);
+    onCommitFiberRoot(root);
   }
 }
 

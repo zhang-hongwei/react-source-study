@@ -11,7 +11,6 @@
 function evalToString(ast /* : Object */) /* : string */ {
   switch (ast.type) {
     case 'StringLiteral':
-    case 'Literal': // ESLint
       return ast.value;
     case 'BinaryExpression': // `+`
       if (ast.operator !== '+') {

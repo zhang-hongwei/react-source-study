@@ -31,7 +31,6 @@ const Wedge = require('react-art/Wedge');
 // Isolate the noop renderer
 jest.resetModules();
 const ReactNoop = require('react-noop-renderer');
-const Scheduler = require('scheduler');
 
 let Group;
 let Shape;
@@ -359,7 +358,7 @@ describe('ReactART', () => {
     const CurrentRendererContext = React.createContext(null);
 
     function Yield(props) {
-      Scheduler.unstable_yieldValue(props.value);
+      ReactNoop.yield(props.value);
       return null;
     }
 
@@ -386,7 +385,7 @@ describe('ReactART', () => {
       </CurrentRendererContext.Provider>,
     );
 
-    expect(Scheduler).toFlushAndYieldThrough(['A']);
+    ReactNoop.flushThrough(['A']);
 
     ReactDOM.render(
       <Surface>
@@ -401,7 +400,7 @@ describe('ReactART', () => {
     expect(ops).toEqual([null, 'ART']);
 
     ops = [];
-    expect(Scheduler).toFlushAndYield(['B', 'C']);
+    expect(ReactNoop.flush()).toEqual(['B', 'C']);
 
     expect(ops).toEqual(['Test']);
   });
@@ -420,7 +419,7 @@ describe('ReactARTComponents', () => {
       ReactTestRenderer.create(
         <Circle stroke="green" strokeWidth={3} fill="blue" />,
       ),
-    ).toErrorDev(
+    ).toWarnDev(
       'Warning: Failed prop type: The prop `radius` is marked as required in `Circle`, ' +
         'but its value is `undefined`.' +
         '\n    in Circle (at **)',
@@ -437,7 +436,7 @@ describe('ReactARTComponents', () => {
   it('should warn if width/height is missing on a Rectangle component', () => {
     expect(() =>
       ReactTestRenderer.create(<Rectangle stroke="green" fill="blue" />),
-    ).toErrorDev([
+    ).toWarnDev([
       'Warning: Failed prop type: The prop `width` is marked as required in `Rectangle`, ' +
         'but its value is `undefined`.' +
         '\n    in Rectangle (at **)',
@@ -462,7 +461,7 @@ describe('ReactARTComponents', () => {
   });
 
   it('should warn if outerRadius/startAngle/endAngle is missing on a Wedge component', () => {
-    expect(() => ReactTestRenderer.create(<Wedge fill="blue" />)).toErrorDev([
+    expect(() => ReactTestRenderer.create(<Wedge fill="blue" />)).toWarnDev([
       'Warning: Failed prop type: The prop `outerRadius` is marked as required in `Wedge`, ' +
         'but its value is `undefined`.' +
         '\n    in Wedge (at **)',

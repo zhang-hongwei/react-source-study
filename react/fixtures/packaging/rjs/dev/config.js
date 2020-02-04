@@ -4,9 +4,8 @@ module.exports = {
   out: 'output.js',
   optimize: 'none',
   paths: {
-    react: '../../../../build/node_modules/react/umd/react.development',
-    'react-dom':
-      '../../../../build/node_modules/react-dom/umd/react-dom.development',
+    react: '../../../../build/dist/react.development',
+    'react-dom': '../../../../build/dist/react-dom.development',
     schedule: '../../../../build/dist/schedule.development',
   },
 };

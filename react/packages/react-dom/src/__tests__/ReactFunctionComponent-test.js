@@ -108,9 +108,10 @@ describe('ReactFunctionComponent', () => {
 
     expect(() =>
       ReactDOM.render(<FunctionComponentWithChildContext />, container),
-    ).toErrorDev(
+    ).toWarnDev(
       'FunctionComponentWithChildContext: Function ' +
         'components do not support getDerivedStateFromProps.',
+      {withoutStack: true},
     );
   });
 
@@ -130,9 +131,10 @@ describe('ReactFunctionComponent', () => {
         <FunctionComponentWithChildContext name="A" />,
         container,
       ),
-    ).toErrorDev(
+    ).toWarnDev(
       'FunctionComponentWithChildContext(...): childContextTypes cannot ' +
         'be defined on a function component.',
+      {withoutStack: true},
     );
   });
 
@@ -188,11 +190,9 @@ describe('ReactFunctionComponent', () => {
 
     expect(() =>
       ReactTestUtils.renderIntoDocument(<ParentUsingStringRef />),
-    ).toErrorDev(
+    ).toWarnDev(
       'Warning: Function components cannot be given refs. ' +
-        'Attempts to access this ref will fail. ' +
-        'Did you mean to use React.forwardRef()?\n\n' +
-        'Check the render method ' +
+        'Attempts to access this ref will fail.\n\nCheck the render method ' +
         'of `ParentUsingStringRef`.\n' +
         '    in FunctionComponent (at **)\n' +
         '    in div (at **)\n' +
@@ -226,11 +226,9 @@ describe('ReactFunctionComponent', () => {
 
     expect(() =>
       ReactTestUtils.renderIntoDocument(<ParentUsingFunctionRef />),
-    ).toErrorDev(
+    ).toWarnDev(
       'Warning: Function components cannot be given refs. ' +
-        'Attempts to access this ref will fail. ' +
-        'Did you mean to use React.forwardRef()?\n\n' +
-        'Check the render method ' +
+        'Attempts to access this ref will fail.\n\nCheck the render method ' +
         'of `ParentUsingFunctionRef`.\n' +
         '    in FunctionComponent (at **)\n' +
         '    in div (at **)\n' +
@@ -257,7 +255,7 @@ describe('ReactFunctionComponent', () => {
       instance1 = ReactTestUtils.renderIntoDocument(
         <AnonymousParentUsingJSX />,
       );
-    }).toErrorDev('Warning: Function components cannot be given refs.');
+    }).toWarnDev('Warning: Function components cannot be given refs.');
     // Should be deduped (offending element is on the same line):
     instance1.forceUpdate();
     // Should also be deduped (offending element is on the same line):
@@ -281,13 +279,13 @@ describe('ReactFunctionComponent', () => {
       instance2 = ReactTestUtils.renderIntoDocument(
         <AnonymousParentNotUsingJSX />,
       );
-    }).toErrorDev('Warning: Function components cannot be given refs.');
+    }).toWarnDev('Warning: Function components cannot be given refs.');
     // Should be deduped (same internal instance, no additional warnings)
     instance2.forceUpdate();
     // Could not be deduped (different internal instance):
     expect(() =>
       ReactTestUtils.renderIntoDocument(<AnonymousParentNotUsingJSX />),
-    ).toErrorDev('Warning: Function components cannot be given refs.');
+    ).toWarnDev('Warning: Function components cannot be given refs.');
 
     // When owner doesn't use JSX, but is named, we warn once per owner name
     class NamedParentNotUsingJSX extends React.Component {
@@ -301,7 +299,7 @@ describe('ReactFunctionComponent', () => {
     let instance3;
     expect(() => {
       instance3 = ReactTestUtils.renderIntoDocument(<NamedParentNotUsingJSX />);
-    }).toErrorDev('Warning: Function components cannot be given refs.');
+    }).toWarnDev('Warning: Function components cannot be given refs.');
     // Should be deduped (same owner name, no additional warnings):
     instance3.forceUpdate();
     // Should also be deduped (same owner name, no additional warnings):
@@ -332,11 +330,9 @@ describe('ReactFunctionComponent', () => {
       }
     }
 
-    expect(() => ReactTestUtils.renderIntoDocument(<Parent />)).toErrorDev(
+    expect(() => ReactTestUtils.renderIntoDocument(<Parent />)).toWarnDev(
       'Warning: Function components cannot be given refs. ' +
-        'Attempts to access this ref will fail. ' +
-        'Did you mean to use React.forwardRef()?\n\n' +
-        'Check the render method ' +
+        'Attempts to access this ref will fail.\n\nCheck the render method ' +
         'of `Parent`.\n' +
         '    in Child (at **)\n' +
         '    in Parent (at **)',
@@ -357,14 +353,12 @@ describe('ReactFunctionComponent', () => {
       return <div>{[<span />]}</div>;
     }
 
-    expect(() => ReactTestUtils.renderIntoDocument(<Child />)).toErrorDev(
-      'Each child in a list should have a unique "key" prop.\n\n' +
+    expect(() => ReactTestUtils.renderIntoDocument(<Child />)).toWarnDev(
+      'Each child in an array or iterator should have a unique "key" prop.\n\n' +
         'Check the render method of `Child`.',
     );
   });
 
-  // TODO: change this test after we deprecate default props support
-  // for function components
   it('should support default props and prop types', () => {
     function Child(props) {
       return <div>{props.test}</div>;
@@ -372,7 +366,7 @@ describe('ReactFunctionComponent', () => {
     Child.defaultProps = {test: 2};
     Child.propTypes = {test: PropTypes.string};
 
-    expect(() => ReactTestUtils.renderIntoDocument(<Child />)).toErrorDev(
+    expect(() => ReactTestUtils.renderIntoDocument(<Child />)).toWarnDev(
       'Warning: Failed prop type: Invalid prop `test` of type `number` ' +
         'supplied to `Child`, expected `string`.\n' +
         '    in Child (at **)',

@@ -5,6 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import warning from 'shared/warning';
+
 let warnValidStyle = () => {};
 
 if (__DEV__) {
@@ -33,7 +35,8 @@ if (__DEV__) {
     }
 
     warnedStyleNames[name] = true;
-    console.error(
+    warning(
+      false,
       'Unsupported style property %s. Did you mean %s?',
       name,
       // As Andi Smith suggests
@@ -49,7 +52,8 @@ if (__DEV__) {
     }
 
     warnedStyleNames[name] = true;
-    console.error(
+    warning(
+      false,
       'Unsupported vendor-prefixed style property %s. Did you mean %s?',
       name,
       name.charAt(0).toUpperCase() + name.slice(1),
@@ -62,7 +66,8 @@ if (__DEV__) {
     }
 
     warnedStyleValues[value] = true;
-    console.error(
+    warning(
+      false,
       "Style property values shouldn't contain a semicolon. " +
         'Try "%s: %s" instead.',
       name,
@@ -76,7 +81,8 @@ if (__DEV__) {
     }
 
     warnedForNaNValue = true;
-    console.error(
+    warning(
+      false,
       '`NaN` is an invalid value for the `%s` css style property.',
       name,
     );
@@ -88,7 +94,8 @@ if (__DEV__) {
     }
 
     warnedForInfinityValue = true;
-    console.error(
+    warning(
+      false,
       '`Infinity` is an invalid value for the `%s` css style property.',
       name,
     );

@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {injection as EventPluginHubInjection} from 'legacy-events/EventPluginHub';
-import {setComponentTree} from 'legacy-events/EventPluginUtils';
+import * as EventPluginHub from 'events/EventPluginHub';
+import * as EventPluginUtils from 'events/EventPluginUtils';
 
 import {
   getFiberCurrentPropsFromNode,
@@ -23,8 +23,8 @@ import SimpleEventPlugin from '../events/SimpleEventPlugin';
 /**
  * Inject modules for resolving DOM hierarchy and plugin ordering.
  */
-EventPluginHubInjection.injectEventPluginOrder(DOMEventPluginOrder);
-setComponentTree(
+EventPluginHub.injection.injectEventPluginOrder(DOMEventPluginOrder);
+EventPluginUtils.setComponentTree(
   getFiberCurrentPropsFromNode,
   getInstanceFromNode,
   getNodeFromInstance,
@@ -34,7 +34,7 @@ setComponentTree(
  * Some important event plugins included by default (without having to require
  * them).
  */
-EventPluginHubInjection.injectEventPluginsByName({
+EventPluginHub.injection.injectEventPluginsByName({
   SimpleEventPlugin: SimpleEventPlugin,
   EnterLeaveEventPlugin: EnterLeaveEventPlugin,
   ChangeEventPlugin: ChangeEventPlugin,

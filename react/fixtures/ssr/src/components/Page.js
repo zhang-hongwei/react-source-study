@@ -1,8 +1,5 @@
 import React, {Component} from 'react';
 
-import Theme from './Theme';
-import Suspend from './Suspend';
-
 import './Page.css';
 
 const autofocusedInputs = [
@@ -17,22 +14,17 @@ export default class Page extends Component {
   };
   render() {
     const link = (
-      <a className="link" onClick={this.handleClick}>
+      <a className="bold" onClick={this.handleClick}>
         Click Here
       </a>
     );
     return (
-      <div className={this.context + '-box'}>
-        <Suspend>
-          <p suppressHydrationWarning={true}>
-            A random number: {Math.random()}
-          </p>
-          <p>Autofocus on page load: {autofocusedInputs}</p>
-          <p>{!this.state.active ? link : 'Thanks!'}</p>
-          {this.state.active && <p>Autofocus on update: {autofocusedInputs}</p>}
-        </Suspend>
+      <div>
+        <p suppressHydrationWarning={true}>A random number: {Math.random()}</p>
+        <p>Autofocus on page load: {autofocusedInputs}</p>
+        <p>{!this.state.active ? link : 'Thanks!'}</p>
+        {this.state.active && <p>Autofocus on update: {autofocusedInputs}</p>}
       </div>
     );
   }
 }
-Page.contextType = Theme;

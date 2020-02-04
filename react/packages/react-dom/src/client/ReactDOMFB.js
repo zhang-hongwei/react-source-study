@@ -7,35 +7,24 @@
  * @flow
  */
 
-import {findCurrentFiberUsingSlowPath} from 'react-reconciler/reflection';
-import {getIsHydrating} from 'react-reconciler/src/ReactFiberHydrationContext';
-import {get as getInstance} from 'shared/ReactInstanceMap';
+import * as ReactFiberTreeReflection from 'react-reconciler/reflection';
+import * as ReactInstanceMap from 'shared/ReactInstanceMap';
 import {addUserTimingListener} from 'shared/ReactFeatureFlags';
 
 import ReactDOM from './ReactDOM';
-import {isEnabled} from '../events/ReactBrowserEventEmitter';
-import {getClosestInstanceFromNode} from './ReactDOMComponentTree';
+import * as ReactBrowserEventEmitter from '../events/ReactBrowserEventEmitter';
+import * as ReactDOMComponentTree from './ReactDOMComponentTree';
 
 Object.assign(
   (ReactDOM.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED: any),
   {
     // These are real internal dependencies that are trickier to remove:
-    ReactBrowserEventEmitter: {
-      isEnabled,
-    },
-    ReactFiberTreeReflection: {
-      findCurrentFiberUsingSlowPath,
-    },
-    ReactDOMComponentTree: {
-      getClosestInstanceFromNode,
-    },
-    ReactInstanceMap: {
-      get: getInstance,
-    },
+    ReactBrowserEventEmitter,
+    ReactFiberTreeReflection,
+    ReactDOMComponentTree,
+    ReactInstanceMap,
     // Perf experiment
     addUserTimingListener,
-
-    getIsHydrating,
   },
 );
 

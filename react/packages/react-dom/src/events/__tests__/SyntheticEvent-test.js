@@ -151,15 +151,15 @@ describe('SyntheticEvent', () => {
       'See https://fb.me/react-event-pooling for more information.';
 
     // once for each property accessed
-    expect(() => expect(syntheticEvent.type).toBe(null)).toErrorDev(
+    expect(() => expect(syntheticEvent.type).toBe(null)).toWarnDev(
       getExpectedWarning('type'),
       {withoutStack: true},
     );
-    expect(() => expect(syntheticEvent.nativeEvent).toBe(null)).toErrorDev(
+    expect(() => expect(syntheticEvent.nativeEvent).toBe(null)).toWarnDev(
       getExpectedWarning('nativeEvent'),
       {withoutStack: true},
     );
-    expect(() => expect(syntheticEvent.target).toBe(null)).toErrorDev(
+    expect(() => expect(syntheticEvent.target).toBe(null)).toWarnDev(
       getExpectedWarning('target'),
       {withoutStack: true},
     );
@@ -185,7 +185,7 @@ describe('SyntheticEvent', () => {
 
     expect(() => {
       syntheticEvent.type = 'MouseEvent';
-    }).toErrorDev(
+    }).toWarnDev(
       'Warning: This synthetic event is reused for performance reasons. If ' +
         "you're seeing this, you're setting the property `type` on a " +
         'released/nullified synthetic event. This is effectively a no-op. If you must ' +
@@ -211,7 +211,7 @@ describe('SyntheticEvent', () => {
     event.initEvent('click', true, true);
     node.dispatchEvent(event);
 
-    expect(() => syntheticEvent.preventDefault()).toErrorDev(
+    expect(() => syntheticEvent.preventDefault()).toWarnDev(
       'Warning: This synthetic event is reused for performance reasons. If ' +
         "you're seeing this, you're accessing the method `preventDefault` on a " +
         'released/nullified synthetic event. This is a no-op function. If you must ' +
@@ -238,7 +238,7 @@ describe('SyntheticEvent', () => {
 
     node.dispatchEvent(event);
 
-    expect(() => syntheticEvent.stopPropagation()).toErrorDev(
+    expect(() => syntheticEvent.stopPropagation()).toWarnDev(
       'Warning: This synthetic event is reused for performance reasons. If ' +
         "you're seeing this, you're accessing the method `stopPropagation` on a " +
         'released/nullified synthetic event. This is a no-op function. If you must ' +
@@ -266,7 +266,7 @@ describe('SyntheticEvent', () => {
 
     expect(() =>
       expect(syntheticEvent.isPropagationStopped()).toBe(false),
-    ).toErrorDev(
+    ).toWarnDev(
       'Warning: This synthetic event is reused for performance reasons. If ' +
         "you're seeing this, you're accessing the method `isPropagationStopped` on a " +
         'released/nullified synthetic event. This is a no-op function. If you must ' +
@@ -294,7 +294,7 @@ describe('SyntheticEvent', () => {
 
     expect(() =>
       expect(syntheticEvent.isDefaultPrevented()).toBe(false),
-    ).toErrorDev(
+    ).toWarnDev(
       'Warning: This synthetic event is reused for performance reasons. If ' +
         "you're seeing this, you're accessing the method `isDefaultPrevented` on a " +
         'released/nullified synthetic event. This is a no-op function. If you must ' +
@@ -316,7 +316,7 @@ describe('SyntheticEvent', () => {
     // access a property to cause the warning
     expect(() => {
       event.nativeEvent; // eslint-disable-line no-unused-expressions
-    }).toErrorDev(
+    }).toWarnDev(
       'Warning: This synthetic event is reused for performance reasons. If ' +
         "you're seeing this, you're accessing the property `nativeEvent` on a " +
         'released/nullified synthetic event. This is set to null. If you must ' +
@@ -338,7 +338,7 @@ describe('SyntheticEvent', () => {
     const eventHandler = e => {
       expect(() => {
         e.foo = 'bar';
-      }).toErrorDev(
+      }).toWarnDev(
         'Warning: This synthetic event is reused for performance reasons. If ' +
           "you're seeing this, you're adding a new property in the synthetic " +
           'event object. The property is never released. ' +

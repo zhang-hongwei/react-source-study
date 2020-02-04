@@ -48,7 +48,9 @@ describe('ReactJSXElementValidator', () => {
       ReactTestUtils.renderIntoDocument(
         <Component>{[<Component />, <Component />]}</Component>,
       ),
-    ).toErrorDev('Each child in a list should have a unique "key" prop.');
+    ).toWarnDev(
+      'Each child in an array or iterator should have a unique "key" prop.',
+    );
   });
 
   it('warns for keys for arrays of elements with owner info', () => {
@@ -66,8 +68,8 @@ describe('ReactJSXElementValidator', () => {
 
     expect(() =>
       ReactTestUtils.renderIntoDocument(<ComponentWrapper />),
-    ).toErrorDev(
-      'Each child in a list should have a unique "key" prop.' +
+    ).toWarnDev(
+      'Each child in an array or iterator should have a unique "key" prop.' +
         '\n\nCheck the render method of `InnerComponent`. ' +
         'It was passed a child from ComponentWrapper. ',
     );
@@ -88,7 +90,9 @@ describe('ReactJSXElementValidator', () => {
 
     expect(() =>
       ReactTestUtils.renderIntoDocument(<Component>{iterable}</Component>),
-    ).toErrorDev('Each child in a list should have a unique "key" prop.');
+    ).toWarnDev(
+      'Each child in an array or iterator should have a unique "key" prop.',
+    );
   });
 
   it('does not warn for arrays of elements with keys', () => {
@@ -163,7 +167,7 @@ describe('ReactJSXElementValidator', () => {
         return <MyComp color={123} />;
       }
     }
-    expect(() => ReactTestUtils.renderIntoDocument(<ParentComp />)).toErrorDev(
+    expect(() => ReactTestUtils.renderIntoDocument(<ParentComp />)).toWarnDev(
       'Warning: Failed prop type: ' +
         'Invalid prop `color` of type `number` supplied to `MyComp`, ' +
         'expected `string`.\n' +
@@ -195,7 +199,7 @@ describe('ReactJSXElementValidator', () => {
     ReactDOM.render(<ParentComp warn={false} />, container);
     expect(() =>
       ReactDOM.render(<ParentComp warn={true} />, container),
-    ).toErrorDev(
+    ).toWarnDev(
       'Warning: Failed prop type: ' +
         'Invalid prop `color` of type `number` supplied to `MyComp`, ' +
         'expected `string`.\n' +
@@ -210,7 +214,7 @@ describe('ReactJSXElementValidator', () => {
     const Null = null;
     const True = true;
     const Div = 'div';
-    expect(() => void <Undefined />).toErrorDev(
+    expect(() => void <Undefined />).toWarnDev(
       'Warning: React.createElement: type is invalid -- expected a string ' +
         '(for built-in components) or a class/function (for composite ' +
         'components) but got: undefined. You likely forgot to export your ' +
@@ -219,14 +223,14 @@ describe('ReactJSXElementValidator', () => {
         '\n\nCheck your code at **.',
       {withoutStack: true},
     );
-    expect(() => void <Null />).toErrorDev(
+    expect(() => void <Null />).toWarnDev(
       'Warning: React.createElement: type is invalid -- expected a string ' +
         '(for built-in components) or a class/function (for composite ' +
         'components) but got: null.' +
         '\n\nCheck your code at **.',
       {withoutStack: true},
     );
-    expect(() => void <True />).toErrorDev(
+    expect(() => void <True />).toWarnDev(
       'Warning: React.createElement: type is invalid -- expected a string ' +
         '(for built-in components) or a class/function (for composite ' +
         'components) but got: boolean.' +
@@ -242,7 +246,7 @@ describe('ReactJSXElementValidator', () => {
 
     expect(() =>
       ReactTestUtils.renderIntoDocument(<RequiredPropComponent />),
-    ).toErrorDev(
+    ).toWarnDev(
       'Warning: Failed prop type: The prop `prop` is marked as required in ' +
         '`RequiredPropComponent`, but its value is `null`.\n' +
         '    in RequiredPropComponent (at **)',
@@ -252,7 +256,7 @@ describe('ReactJSXElementValidator', () => {
   it('should not check the default for explicit null', () => {
     expect(() =>
       ReactTestUtils.renderIntoDocument(<RequiredPropComponent prop={null} />),
-    ).toErrorDev(
+    ).toWarnDev(
       'Warning: Failed prop type: The prop `prop` is marked as required in ' +
         '`RequiredPropComponent`, but its value is `null`.\n' +
         '    in RequiredPropComponent (at **)',
@@ -262,7 +266,7 @@ describe('ReactJSXElementValidator', () => {
   it('should check declared prop types', () => {
     expect(() =>
       ReactTestUtils.renderIntoDocument(<RequiredPropComponent />),
-    ).toErrorDev(
+    ).toWarnDev(
       'Warning: Failed prop type: ' +
         'The prop `prop` is marked as required in `RequiredPropComponent`, but ' +
         'its value is `undefined`.\n' +
@@ -270,7 +274,7 @@ describe('ReactJSXElementValidator', () => {
     );
     expect(() =>
       ReactTestUtils.renderIntoDocument(<RequiredPropComponent prop={42} />),
-    ).toErrorDev(
+    ).toWarnDev(
       'Warning: Failed prop type: ' +
         'Invalid prop `prop` of type `number` supplied to ' +
         '`RequiredPropComponent`, expected `string`.\n' +
@@ -296,7 +300,7 @@ describe('ReactJSXElementValidator', () => {
     };
     expect(() =>
       ReactTestUtils.renderIntoDocument(<NullPropTypeComponent />),
-    ).toErrorDev(
+    ).toWarnDev(
       'NullPropTypeComponent: prop type `prop` is invalid; it must be a ' +
         'function, usually from the `prop-types` package,',
     );
@@ -313,7 +317,7 @@ describe('ReactJSXElementValidator', () => {
     };
     expect(() =>
       ReactTestUtils.renderIntoDocument(<NullContextTypeComponent />),
-    ).toErrorDev(
+    ).toWarnDev(
       'NullContextTypeComponent: context type `prop` is invalid; it must ' +
         'be a function, usually from the `prop-types` package,',
     );
@@ -330,7 +334,7 @@ describe('ReactJSXElementValidator', () => {
     });
     expect(() =>
       ReactTestUtils.renderIntoDocument(<GetDefaultPropsComponent />),
-    ).toErrorDev(
+    ).toWarnDev(
       'getDefaultProps is only used on classic React.createClass definitions.' +
         ' Use a static property named `defaultProps` instead.',
       {withoutStack: true},
@@ -350,7 +354,7 @@ describe('ReactJSXElementValidator', () => {
       ReactTestUtils.renderIntoDocument(
         <MisspelledPropTypesComponent prop="hi" />,
       ),
-    ).toErrorDev(
+    ).toWarnDev(
       'Warning: Component MisspelledPropTypesComponent declared `PropTypes` ' +
         'instead of `propTypes`. Did you misspell the property assignment?',
       {withoutStack: true},
@@ -364,7 +368,7 @@ describe('ReactJSXElementValidator', () => {
       }
     }
 
-    expect(() => ReactTestUtils.renderIntoDocument(<Foo />)).toErrorDev(
+    expect(() => ReactTestUtils.renderIntoDocument(<Foo />)).toWarnDev(
       'Invalid prop `a` supplied to `React.Fragment`. React.Fragment ' +
         'can only have `key` and `children` props.',
     );
@@ -384,30 +388,30 @@ describe('ReactJSXElementValidator', () => {
       }
     }
 
-    expect(() => ReactTestUtils.renderIntoDocument(<Foo />)).toErrorDev(
+    expect(() => ReactTestUtils.renderIntoDocument(<Foo />)).toWarnDev(
       'Invalid attribute `ref` supplied to `React.Fragment`.',
     );
   });
 
   it('does not warn for fragments of multiple elements without keys', () => {
     ReactTestUtils.renderIntoDocument(
-      <>
+      <React.Fragment>
         <span>1</span>
         <span>2</span>
-      </>,
+      </React.Fragment>,
     );
   });
 
   it('warns for fragments of multiple elements with same key', () => {
     expect(() =>
       ReactTestUtils.renderIntoDocument(
-        <>
+        <React.Fragment>
           <span key="a">1</span>
           <span key="a">2</span>
           <span key="b">3</span>
-        </>,
+        </React.Fragment>,
       ),
-    ).toErrorDev('Encountered two children with the same key, `a`.', {
+    ).toWarnDev('Encountered two children with the same key, `a`.', {
       withoutStack: true,
     });
   });

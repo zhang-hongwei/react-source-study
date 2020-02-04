@@ -15,18 +15,28 @@ First, build React and the fixtures:
 ```
 cd react
 npm run build
-node fixtures/packaging/build-all.js
+
+cd fixtures/packaging
+node build-all.js
 ```
 
-Then run a local server, e.g.
+Then run a local server at the root of the repo, e.g.
 
 ```
-npx pushstate-server .
+npm i -g pushstate-server
+cd ../..
+pushstate-server .
 ```
 
-and open the following URL in your browser: [http://localhost:9000/fixtures/packaging/index.html](http://localhost:9000/fixtures/packaging/index.html)
+(Too complicated? Send a PR to simplify this :-)).
+
+Then open the following URL in your browser:
+
+```
+open http://localhost:9000/fixtures/packaging/index.html
+```
 
 You should see two things:
 
-* A number of iframes (corresponding to various builds), with "Hello World" rendered in each iframe.
+* "Hello World" is rendered in each iframe.
 * No errors in the console.

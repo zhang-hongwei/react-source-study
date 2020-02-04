@@ -1,5 +1,5 @@
-const {createElement, Component, Suspense} = React;
-const {createRoot} = ReactDOM;
+const {createElement, Component, Placeholder} = React;
+const {unstable_createRoot: createRoot} = ReactDOM;
 const {
   unstable_subscribe: subscribe,
   unstable_trace: trace,
@@ -56,8 +56,8 @@ const read = key => {
 
 const TestApp = () =>
   createElement(
-    Suspense,
-    {fallback: createElement(PlaceholderText)},
+    Placeholder,
+    {delayMs: 100, fallback: createElement(PlaceholderText)},
     createElement(SuspendingChild, {text: 'foo'}),
     createElement(SuspendingChild, {text: 'bar'}),
     createElement(SuspendingChild, {text: 'baz'})
@@ -91,11 +91,13 @@ subscribe({
 const element = document.getElementById('root');
 trace('initial_render', performance.now(), () => {
   const root = createRoot(element);
-  log.app('render()');
-  root.render(
-    createElement(TestApp),
+  const batch = root.createBatch();
+  log.app('batch.render()');
+  batch.render(createElement(TestApp));
+  batch.then(
     wrap(() => {
-      log.app('commited');
+      log.app('batch.commit()');
+      batch.commit();
     })
   );
 });

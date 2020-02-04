@@ -13,7 +13,6 @@
 let React;
 let ReactFeatureFlags;
 let ReactNoop;
-let Scheduler;
 
 describe('ReactIncrementalTriangle', () => {
   beforeEach(() => {
@@ -22,7 +21,6 @@ describe('ReactIncrementalTriangle', () => {
     ReactFeatureFlags.debugRenderPhaseSideEffectsForStrictMode = false;
     React = require('react');
     ReactNoop = require('react-noop-renderer');
-    Scheduler = require('scheduler');
   });
 
   function span(prop) {
@@ -191,7 +189,6 @@ describe('ReactIncrementalTriangle', () => {
           leafTriangles.push(this);
         }
         this.state = {isActive: false};
-        this.child = React.createRef(null);
       }
       activate() {
         this.setState({isActive: true});
@@ -206,17 +203,9 @@ describe('ReactIncrementalTriangle', () => {
           this.state.isActive !== nextState.isActive
         );
       }
-      componentDidUpdate() {
-        if (this.child.current !== null) {
-          const {prop: currentCounter} = JSON.parse(this.child.current.prop);
-          if (this.props.counter !== currentCounter) {
-            throw new Error('Incorrect props in lifecycle');
-          }
-        }
-      }
       render() {
         if (yieldAfterEachRender) {
-          Scheduler.unstable_yieldValue(this);
+          ReactNoop.yield(this);
         }
         const {counter, remainingDepth} = this.props;
         return (
@@ -239,7 +228,7 @@ describe('ReactIncrementalTriangle', () => {
                       activeDepthProp,
                       activeDepthContext,
                     });
-                    return <span ref={this.child} prop={output} />;
+                    return <span prop={output} />;
                   }
 
                   return (
@@ -308,7 +297,7 @@ describe('ReactIncrementalTriangle', () => {
       } else {
         ReactNoop.render(<App remainingDepth={MAX_DEPTH} key={keyCounter++} />);
       }
-      Scheduler.unstable_flushAllWithoutAsserting();
+      ReactNoop.flush();
       assertConsistentTree();
       return appInstance;
     }
@@ -387,10 +376,10 @@ describe('ReactIncrementalTriangle', () => {
         ReactNoop.flushSync(() => {
           switch (action.type) {
             case FLUSH:
-              Scheduler.unstable_flushNumberOfYields(action.unitsOfWork);
+              ReactNoop.flushUnitsOfWork(action.unitsOfWork);
               break;
             case FLUSH_ALL:
-              Scheduler.unstable_flushAllWithoutAsserting();
+              ReactNoop.flush();
               break;
             case STEP:
               ReactNoop.deferredUpdates(() => {
@@ -432,7 +421,7 @@ describe('ReactIncrementalTriangle', () => {
         assertConsistentTree(activeLeafIndices);
       }
       // Flush remaining work
-      Scheduler.unstable_flushAllWithoutAsserting();
+      ReactNoop.flush();
       assertConsistentTree(activeLeafIndices, expectedCounterAtEnd);
     }
 

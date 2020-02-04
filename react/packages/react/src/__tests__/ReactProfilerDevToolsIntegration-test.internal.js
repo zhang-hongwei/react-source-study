@@ -14,10 +14,11 @@ describe('ReactProfiler DevTools integration', () => {
   let React;
   let ReactFeatureFlags;
   let ReactTestRenderer;
-  let Scheduler;
   let SchedulerTracing;
   let AdvanceTime;
+  let advanceTimeBy;
   let hook;
+  let mockNow;
 
   beforeEach(() => {
     global.__REACT_DEVTOOLS_GLOBAL_HOOK__ = hook = {
@@ -29,13 +30,23 @@ describe('ReactProfiler DevTools integration', () => {
 
     jest.resetModules();
 
+    let currentTime = 0;
+
+    mockNow = jest.fn().mockImplementation(() => currentTime);
+
+    global.Date.now = mockNow;
+
     ReactFeatureFlags = require('shared/ReactFeatureFlags');
     ReactFeatureFlags.enableProfilerTimer = true;
     ReactFeatureFlags.enableSchedulerTracing = true;
-    Scheduler = require('scheduler');
     SchedulerTracing = require('scheduler/tracing');
     React = require('react');
     ReactTestRenderer = require('react-test-renderer');
+
+    ReactTestRenderer.unstable_setNowImplementation(mockNow);
+    advanceTimeBy = amount => {
+      currentTime += amount;
+    };
 
     AdvanceTime = class extends React.Component {
       static defaultProps = {
@@ -47,7 +58,7 @@ describe('ReactProfiler DevTools integration', () => {
       }
       render() {
         // Simulate time passing when this component is rendered
-        Scheduler.unstable_advanceTime(this.props.byAmount);
+        advanceTimeBy(this.props.byAmount);
         return this.props.children || null;
       }
     };
@@ -55,15 +66,15 @@ describe('ReactProfiler DevTools integration', () => {
 
   it('should auto-Profile all fibers if the DevTools hook is detected', () => {
     const App = ({multiplier}) => {
-      Scheduler.unstable_advanceTime(2);
+      advanceTimeBy(2);
       return (
-        <React.Profiler id="Profiler" onRender={onRender}>
+        <React.unstable_Profiler id="Profiler" onRender={onRender}>
           <AdvanceTime byAmount={3 * multiplier} shouldComponentUpdate={true} />
           <AdvanceTime
             byAmount={7 * multiplier}
             shouldComponentUpdate={false}
           />
-        </React.Profiler>
+        </React.unstable_Profiler>
       );
     };
 
@@ -121,7 +132,7 @@ describe('ReactProfiler DevTools integration', () => {
   });
 
   it('should reset the fiber stack correctly after an error when profiling host roots', () => {
-    Scheduler.unstable_advanceTime(20);
+    advanceTimeBy(20);
 
     const rendered = ReactTestRenderer.create(
       <div>
@@ -129,7 +140,7 @@ describe('ReactProfiler DevTools integration', () => {
       </div>,
     );
 
-    Scheduler.unstable_advanceTime(20);
+    advanceTimeBy(20);
 
     expect(() => {
       rendered.update(
@@ -139,7 +150,7 @@ describe('ReactProfiler DevTools integration', () => {
       );
     }).toThrow();
 
-    Scheduler.unstable_advanceTime(20);
+    advanceTimeBy(20);
 
     // But this should render correctly, if the profiler's fiber stack has been reset.
     rendered.update(
@@ -164,9 +175,9 @@ describe('ReactProfiler DevTools integration', () => {
     const root = rendered.root._currentFiber().return;
     expect(root.stateNode.memoizedInteractions).toContainNoInteractions();
 
-    Scheduler.unstable_advanceTime(10);
+    advanceTimeBy(10);
 
-    const eventTime = Scheduler.unstable_now();
+    const eventTime = mockNow();
 
     // Render with an interaction
     SchedulerTracing.unstable_trace('some event', eventTime, () => {
@@ -176,31 +187,5 @@ describe('ReactProfiler DevTools integration', () => {
     expect(root.stateNode.memoizedInteractions).toMatchInteractions([
       {name: 'some event', timestamp: eventTime},
     ]);
-  });
-
-  it('regression test: #17159', () => {
-    function Text({text}) {
-      Scheduler.unstable_yieldValue(text);
-      return text;
-    }
-
-    const root = ReactTestRenderer.create(null, {unstable_isConcurrent: true});
-
-    // Commit something
-    root.update(<Text text="A" />);
-    expect(Scheduler).toFlushAndYield(['A']);
-    expect(root).toMatchRenderedOutput('A');
-
-    // Advance time by many seconds, larger than the default expiration time
-    // for updates.
-    Scheduler.unstable_advanceTime(10000);
-    // Schedule an update.
-    root.update(<Text text="B" />);
-
-    // Update B should not instantly expire.
-    expect(Scheduler).toFlushExpired([]);
-
-    expect(Scheduler).toFlushAndYield(['B']);
-    expect(root).toMatchRenderedOutput('B');
   });
 });

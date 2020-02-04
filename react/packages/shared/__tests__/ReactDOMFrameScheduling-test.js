@@ -10,29 +10,11 @@
 'use strict';
 
 describe('ReactDOMFrameScheduling', () => {
-  beforeEach(() => {
-    jest.resetModules();
-
-    // Un-mock scheduler
-    jest.mock('scheduler', () => require.requireActual('scheduler'));
-    jest.mock('scheduler/src/SchedulerHostConfig', () =>
-      require.requireActual(
-        'scheduler/src/forks/SchedulerHostConfig.default.js',
-      ),
-    );
-  });
-
   it('warns when requestAnimationFrame is not polyfilled in the browser', () => {
     const previousRAF = global.requestAnimationFrame;
-    const previousMessageChannel = global.MessageChannel;
     try {
-      delete global.requestAnimationFrame;
-      global.MessageChannel = function MessageChannel() {
-        return {
-          port1: {},
-          port2: {},
-        };
-      };
+      global.requestAnimationFrame = undefined;
+      jest.resetModules();
       spyOnDevAndProd(console, 'error');
       require('react-dom');
       expect(console.error.calls.count()).toEqual(1);
@@ -40,7 +22,6 @@ describe('ReactDOMFrameScheduling', () => {
         "This browser doesn't support requestAnimationFrame.",
       );
     } finally {
-      global.MessageChannel = previousMessageChannel;
       global.requestAnimationFrame = previousRAF;
     }
   });

@@ -5,11 +5,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {runEventsInBatch} from 'legacy-events/EventBatching';
-import {accumulateTwoPhaseDispatches} from 'legacy-events/EventPropagators';
-import {enqueueStateRestore} from 'legacy-events/ReactControlledComponent';
-import {batchedUpdates} from 'legacy-events/ReactGenericBatching';
-import SyntheticEvent from 'legacy-events/SyntheticEvent';
+import * as EventPluginHub from 'events/EventPluginHub';
+import {accumulateTwoPhaseDispatches} from 'events/EventPropagators';
+import {enqueueStateRestore} from 'events/ReactControlledComponent';
+import {batchedUpdates} from 'events/ReactGenericBatching';
+import SyntheticEvent from 'events/SyntheticEvent';
 import isTextInputElement from 'shared/isTextInputElement';
 import {canUseDOM} from 'shared/ExecutionEnvironment';
 
@@ -26,7 +26,7 @@ import {
 import getEventTarget from './getEventTarget';
 import isEventSupported from './isEventSupported';
 import {getNodeFromInstance} from '../client/ReactDOMComponentTree';
-import {updateValueIfChanged} from '../client/inputValueTracking';
+import * as inputValueTracking from '../client/inputValueTracking';
 import {setDefaultValue} from '../client/ReactDOMInput';
 import {disableInputAttributeSyncing} from 'shared/ReactFeatureFlags';
 
@@ -100,12 +100,12 @@ function manualDispatchChangeEvent(nativeEvent) {
 }
 
 function runEventInBatch(event) {
-  runEventsInBatch(event);
+  EventPluginHub.runEventsInBatch(event, false);
 }
 
 function getInstIfValueChanged(targetInst) {
   const targetNode = getNodeFromInstance(targetInst);
-  if (updateValueIfChanged(targetNode)) {
+  if (inputValueTracking.updateValueIfChanged(targetNode)) {
     return targetInst;
   }
 }
@@ -265,7 +265,6 @@ const ChangeEventPlugin = {
     targetInst,
     nativeEvent,
     nativeEventTarget,
-    eventSystemFlags,
   ) {
     const targetNode = targetInst ? getNodeFromInstance(targetInst) : window;
 

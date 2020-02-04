@@ -9,19 +9,15 @@
 
 import './ReactNativeInjectionShared';
 
-import {
-  getFiberCurrentPropsFromNode,
-  getInstanceFromNode,
-  getNodeFromInstance,
-} from './ReactFabricComponentTree';
-import {setComponentTree} from 'legacy-events/EventPluginUtils';
+import * as ReactFabricComponentTree from './ReactFabricComponentTree';
+import * as EventPluginUtils from 'events/EventPluginUtils';
 import ReactFabricGlobalResponderHandler from './ReactFabricGlobalResponderHandler';
-import ResponderEventPlugin from 'legacy-events/ResponderEventPlugin';
+import ResponderEventPlugin from 'events/ResponderEventPlugin';
 
-setComponentTree(
-  getFiberCurrentPropsFromNode,
-  getInstanceFromNode,
-  getNodeFromInstance,
+EventPluginUtils.setComponentTree(
+  ReactFabricComponentTree.getFiberCurrentPropsFromNode,
+  ReactFabricComponentTree.getInstanceFromNode,
+  ReactFabricComponentTree.getNodeFromInstance,
 );
 
 ResponderEventPlugin.injection.injectGlobalResponderHandler(

@@ -5,9 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {TopLevelType} from 'legacy-events/TopLevelEventTypes';
+import type {TopLevelType} from 'events/TopLevelEventTypes';
 
-import {accumulateTwoPhaseDispatches} from 'legacy-events/EventPropagators';
+import {accumulateTwoPhaseDispatches} from 'events/EventPropagators';
 import {canUseDOM} from 'shared/ExecutionEnvironment';
 
 import {
@@ -22,11 +22,7 @@ import {
   TOP_TEXT_INPUT,
   TOP_PASTE,
 } from './DOMTopLevelEventTypes';
-import {
-  getData as FallbackCompositionStateGetData,
-  initialize as FallbackCompositionStateInitialize,
-  reset as FallbackCompositionStateReset,
-} from './FallbackCompositionState';
+import * as FallbackCompositionState from './FallbackCompositionState';
 import SyntheticCompositionEvent from './SyntheticCompositionEvent';
 import SyntheticInputEvent from './SyntheticInputEvent';
 
@@ -250,10 +246,10 @@ function extractCompositionEvent(
     // The current composition is stored statically and must not be
     // overwritten while composition continues.
     if (!isComposing && eventType === eventTypes.compositionStart) {
-      isComposing = FallbackCompositionStateInitialize(nativeEventTarget);
+      isComposing = FallbackCompositionState.initialize(nativeEventTarget);
     } else if (eventType === eventTypes.compositionEnd) {
       if (isComposing) {
-        fallbackData = FallbackCompositionStateGetData();
+        fallbackData = FallbackCompositionState.getData();
       }
     }
   }
@@ -350,8 +346,8 @@ function getFallbackBeforeInputChars(topLevelType: TopLevelType, nativeEvent) {
       (!canUseCompositionEvent &&
         isFallbackCompositionEnd(topLevelType, nativeEvent))
     ) {
-      const chars = FallbackCompositionStateGetData();
-      FallbackCompositionStateReset();
+      const chars = FallbackCompositionState.getData();
+      FallbackCompositionState.reset();
       isComposing = false;
       return chars;
     }
@@ -467,7 +463,6 @@ const BeforeInputEventPlugin = {
     targetInst,
     nativeEvent,
     nativeEventTarget,
-    eventSystemFlags,
   ) {
     const composition = extractCompositionEvent(
       topLevelType,

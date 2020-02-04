@@ -7,42 +7,29 @@
 
 import invariant from 'shared/invariant';
 
-import {enableNativeTargetAsInstance} from 'shared/ReactFeatureFlags';
-
-const instanceCache = new Map();
-const instanceProps = new Map();
+const instanceCache = {};
+const instanceProps = {};
 
 export function precacheFiberNode(hostInst, tag) {
-  instanceCache.set(tag, hostInst);
+  instanceCache[tag] = hostInst;
 }
 
 export function uncacheFiberNode(tag) {
-  instanceCache.delete(tag);
-  instanceProps.delete(tag);
+  delete instanceCache[tag];
+  delete instanceProps[tag];
 }
 
 function getInstanceFromTag(tag) {
-  return instanceCache.get(tag) || null;
+  return instanceCache[tag] || null;
 }
 
 function getTagFromInstance(inst) {
-  if (enableNativeTargetAsInstance) {
-    let nativeInstance = inst.stateNode;
-    let tag = nativeInstance._nativeTag;
-    if (tag === undefined) {
-      nativeInstance = nativeInstance.canonical;
-      tag = nativeInstance._nativeTag;
-    }
-    invariant(tag, 'All native instances should have a tag.');
-    return nativeInstance;
-  } else {
-    let tag = inst.stateNode._nativeTag;
-    if (tag === undefined) {
-      tag = inst.stateNode.canonical._nativeTag;
-    }
-    invariant(tag, 'All native instances should have a tag.');
-    return tag;
+  let tag = inst.stateNode._nativeTag;
+  if (tag === undefined) {
+    tag = inst.stateNode.canonical._nativeTag;
   }
+  invariant(tag, 'All native instances should have a tag.');
+  return tag;
 }
 
 export {
@@ -52,9 +39,9 @@ export {
 };
 
 export function getFiberCurrentPropsFromNode(stateNode) {
-  return instanceProps.get(stateNode._nativeTag) || null;
+  return instanceProps[stateNode._nativeTag] || null;
 }
 
 export function updateFiberProps(tag, props) {
-  instanceProps.set(tag, props);
+  instanceProps[tag] = props;
 }

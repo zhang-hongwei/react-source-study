@@ -7,19 +7,15 @@
  * @flow
  */
 
-import {PLUGIN_EVENT_SYSTEM} from 'legacy-events/EventSystemFlags';
-import {
-  getListener,
-  runExtractedPluginEventsInBatch,
-} from 'legacy-events/EventPluginHub';
-import {registrationNameModules} from 'legacy-events/EventPluginRegistry';
-import {batchedUpdates} from 'legacy-events/ReactGenericBatching';
-import {enableNativeTargetAsInstance} from 'shared/ReactFeatureFlags';
+import {getListener, runExtractedEventsInBatch} from 'events/EventPluginHub';
+import {registrationNameModules} from 'events/EventPluginRegistry';
+import {batchedUpdates} from 'events/ReactGenericBatching';
+import warningWithoutStack from 'shared/warningWithoutStack';
 
 import {getInstanceFromNode} from './ReactNativeComponentTree';
 
-import type {AnyNativeEvent} from 'legacy-events/PluginModuleType';
-import type {TopLevelType} from 'legacy-events/TopLevelEventTypes';
+import type {AnyNativeEvent} from 'events/PluginModuleType';
+import type {TopLevelType} from 'events/TopLevelEventTypes';
 
 export {getListener, registrationNameModules as registrationNames};
 
@@ -91,30 +87,19 @@ const removeTouchesAtIndices = function(
  * @param {TopLevelType} topLevelType Top level type of event.
  * @param {?object} nativeEventParam Object passed from native.
  */
-function _receiveRootNodeIDEvent(
+export function _receiveRootNodeIDEvent(
   rootNodeID: number,
   topLevelType: TopLevelType,
   nativeEventParam: ?AnyNativeEvent,
 ) {
   const nativeEvent = nativeEventParam || EMPTY_NATIVE_EVENT;
   const inst = getInstanceFromNode(rootNodeID);
-
-  let target = null;
-  if (enableNativeTargetAsInstance) {
-    if (inst != null) {
-      target = inst.stateNode;
-    }
-  } else {
-    target = nativeEvent.target;
-  }
-
   batchedUpdates(function() {
-    runExtractedPluginEventsInBatch(
+    runExtractedEventsInBatch(
       topLevelType,
       inst,
       nativeEvent,
-      target,
-      PLUGIN_EVENT_SYSTEM,
+      nativeEvent.target,
     );
   });
   // React Native doesn't use ReactControlledComponent but if it did, here's
@@ -183,7 +168,8 @@ export function receiveTouches(
     if (target !== null && target !== undefined) {
       if (target < 1) {
         if (__DEV__) {
-          console.error(
+          warningWithoutStack(
+            false,
             'A view is reporting that a touch occurred on tag zero.',
           );
         }

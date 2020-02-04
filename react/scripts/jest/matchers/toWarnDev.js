@@ -8,7 +8,7 @@ function normalizeCodeLocInfo(str) {
   return str && str.replace(/at .+?:\d+/g, 'at **');
 }
 
-const createMatcherFor = (consoleMethod, matcherName) =>
+const createMatcherFor = consoleMethod =>
   function matcher(callback, expectedMessages, options = {}) {
     if (__DEV__) {
       // Warn about incorrect usage of matcher.
@@ -16,7 +16,7 @@ const createMatcherFor = (consoleMethod, matcherName) =>
         expectedMessages = [expectedMessages];
       } else if (!Array.isArray(expectedMessages)) {
         throw Error(
-          `${matcherName}() requires a parameter of type string or an array of strings ` +
+          `toWarnDev() requires a parameter of type string or an array of strings ` +
             `but was given ${typeof expectedMessages}.`
         );
       }
@@ -25,20 +25,19 @@ const createMatcherFor = (consoleMethod, matcherName) =>
         (typeof options !== 'object' || Array.isArray(options))
       ) {
         throw new Error(
-          `${matcherName}() second argument, when present, should be an object. ` +
+          'toWarnDev() second argument, when present, should be an object. ' +
             'Did you forget to wrap the messages into an array?'
         );
       }
       if (arguments.length > 3) {
         // `matcher` comes from Jest, so it's more than 2 in practice
         throw new Error(
-          `${matcherName}() received more than two arguments. ` +
+          'toWarnDev() received more than two arguments. ' +
             'Did you forget to wrap the messages into an array?'
         );
       }
 
       const withoutStack = options.withoutStack;
-      const logAllErrors = options.logAllErrors;
       const warningsWithoutComponentStack = [];
       const warningsWithComponentStack = [];
       const unexpectedWarnings = [];
@@ -59,7 +58,6 @@ const createMatcherFor = (consoleMethod, matcherName) =>
         // Ignore uncaught errors reported by jsdom
         // and React addendums because they're too noisy.
         if (
-          !logAllErrors &&
           consoleMethod === 'error' &&
           shouldIgnoreConsoleError(format, args)
         ) {
@@ -132,7 +130,7 @@ const createMatcherFor = (consoleMethod, matcherName) =>
       };
 
       // TODO Decide whether we need to support nested toWarn* expectations.
-      // If we don't need it, add a check here to see if this is already our spy,
+      // If we don't need id, add a check here to see if this is already our spy,
       // And throw an error.
       const originalMethod = console[consoleMethod];
 
@@ -195,8 +193,8 @@ const createMatcherFor = (consoleMethod, matcherName) =>
                 `Received warning unexpectedly includes a component stack:\n  ${this.utils.printReceived(
                   warningsWithComponentStack[0]
                 )}\nIf this warning intentionally includes the component stack, remove ` +
-                `{withoutStack: true} from the ${matcherName}() call. If you have a mix of ` +
-                `warnings with and without stack in one ${matcherName}() call, pass ` +
+                `{withoutStack: true} from the toWarnDev() call. If you have a mix of ` +
+                `warnings with and without stack in one toWarnDev() call, pass ` +
                 `{withoutStack: N} where N is the number of warnings without stacks.`,
               pass: false,
             };
@@ -210,13 +208,13 @@ const createMatcherFor = (consoleMethod, matcherName) =>
                 `Received warning unexpectedly does not include a component stack:\n  ${this.utils.printReceived(
                   warningsWithoutComponentStack[0]
                 )}\nIf this warning intentionally omits the component stack, add ` +
-                `{withoutStack: true} to the ${matcherName} call.`,
+                `{withoutStack: true} to the toWarnDev() call.`,
               pass: false,
             };
           }
         } else {
           throw Error(
-            `The second argument for ${matcherName}(), when specified, must be an object. It may have a ` +
+            `The second argument for toWarnDev(), when specified, must be an object. It may have a ` +
               `property called "withoutStack" whose value may be undefined, boolean, or a number. ` +
               `Instead received ${typeof withoutStack}.`
           );
@@ -258,6 +256,6 @@ const createMatcherFor = (consoleMethod, matcherName) =>
   };
 
 module.exports = {
-  toWarnDev: createMatcherFor('warn', 'toWarnDev'),
-  toErrorDev: createMatcherFor('error', 'toErrorDev'),
+  toLowPriorityWarnDev: createMatcherFor('warn'),
+  toWarnDev: createMatcherFor('error'),
 };

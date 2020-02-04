@@ -57,7 +57,9 @@ const forks = Object.freeze({
           'from "' +
           entry +
           '" because it does not declare "react" in the package ' +
-          'dependencies or peerDependencies.'
+          'dependencies or peerDependencies. For example, this can happen if you use ' +
+          'warning() instead of warningWithoutStack() in a package that does not ' +
+          'depend on React.'
       );
     }
     return null;
@@ -86,11 +88,11 @@ const forks = Object.freeze({
           case RN_FB_DEV:
           case RN_FB_PROD:
           case RN_FB_PROFILING:
-            return 'shared/forks/ReactFeatureFlags.native-fb.js';
+            return 'shared/forks/ReactFeatureFlags.native-fabric-fb.js';
           case RN_OSS_DEV:
           case RN_OSS_PROD:
           case RN_OSS_PROFILING:
-            return 'shared/forks/ReactFeatureFlags.native-oss.js';
+            return 'shared/forks/ReactFeatureFlags.native-fabric-oss.js';
           default:
             throw Error(
               `Unexpected entry (${entry}) and bundleType (${bundleType})`
@@ -155,33 +157,37 @@ const forks = Object.freeze({
     }
   },
 
-  'scheduler/src/SchedulerFeatureFlags': (bundleType, entry, dependencies) => {
-    if (
-      bundleType === FB_WWW_DEV ||
-      bundleType === FB_WWW_PROD ||
-      bundleType === FB_WWW_PROFILING
-    ) {
-      return 'scheduler/src/forks/SchedulerFeatureFlags.www.js';
-    }
-    return 'scheduler/src/SchedulerFeatureFlags';
-  },
-
-  'scheduler/src/SchedulerHostConfig': (bundleType, entry, dependencies) => {
-    if (
-      entry === 'scheduler/unstable_mock' ||
-      entry === 'react-noop-renderer' ||
-      entry === 'react-noop-renderer/persistent' ||
-      entry === 'react-test-renderer'
-    ) {
-      return 'scheduler/src/forks/SchedulerHostConfig.mock';
-    }
-    return 'scheduler/src/forks/SchedulerHostConfig.default';
-  },
-
-  'shared/consoleWithStackDev': (bundleType, entry) => {
+  // This logic is forked on www to fork the formatting function.
+  'shared/invariant': (bundleType, entry) => {
     switch (bundleType) {
       case FB_WWW_DEV:
-        return 'shared/forks/consoleWithStackDev.www.js';
+      case FB_WWW_PROD:
+      case FB_WWW_PROFILING:
+        return 'shared/forks/invariant.www.js';
+      default:
+        return null;
+    }
+  },
+
+  // This logic is forked on www to ignore some warnings.
+  'shared/lowPriorityWarning': (bundleType, entry) => {
+    switch (bundleType) {
+      case FB_WWW_DEV:
+      case FB_WWW_PROD:
+      case FB_WWW_PROFILING:
+        return 'shared/forks/lowPriorityWarning.www.js';
+      default:
+        return null;
+    }
+  },
+
+  // This logic is forked on www to ignore some warnings.
+  'shared/warningWithoutStack': (bundleType, entry) => {
+    switch (bundleType) {
+      case FB_WWW_DEV:
+      case FB_WWW_PROD:
+      case FB_WWW_PROFILING:
+        return 'shared/forks/warningWithoutStack.www.js';
       default:
         return null;
     }
@@ -195,30 +201,6 @@ const forks = Object.freeze({
       case FB_WWW_PROD:
       case FB_WWW_PROFILING:
         return 'react/src/forks/ReactCurrentOwner.www.js';
-      default:
-        return null;
-    }
-  },
-
-  // Similarly, we preserve an inline require to ReactCurrentDispatcher.
-  // See the explanation in FB version of ReactCurrentDispatcher in www:
-  'react/src/ReactCurrentDispatcher': (bundleType, entry) => {
-    switch (bundleType) {
-      case FB_WWW_DEV:
-      case FB_WWW_PROD:
-      case FB_WWW_PROFILING:
-        return 'react/src/forks/ReactCurrentDispatcher.www.js';
-      default:
-        return null;
-    }
-  },
-
-  'react/src/ReactSharedInternals.js': (bundleType, entry) => {
-    switch (bundleType) {
-      case UMD_DEV:
-      case UMD_PROD:
-      case UMD_PROFILING:
-        return 'react/src/forks/ReactSharedInternals.umd.js';
       default:
         return null;
     }
@@ -290,96 +272,6 @@ const forks = Object.freeze({
     );
   },
 
-  'react-server/src/ReactServerHostConfig': (
-    bundleType,
-    entry,
-    dependencies,
-    moduleType
-  ) => {
-    if (dependencies.indexOf('react-server') !== -1) {
-      return null;
-    }
-    if (moduleType !== RENDERER && moduleType !== RECONCILER) {
-      return null;
-    }
-    // eslint-disable-next-line no-for-of-loops/no-for-of-loops
-    for (let rendererInfo of inlinedHostConfigs) {
-      if (rendererInfo.entryPoints.indexOf(entry) !== -1) {
-        if (!rendererInfo.isServerSupported) {
-          return null;
-        }
-        return `react-server/src/forks/ReactServerHostConfig.${
-          rendererInfo.shortName
-        }.js`;
-      }
-    }
-    throw new Error(
-      'Expected ReactServerHostConfig to always be replaced with a shim, but ' +
-        `found no mention of "${entry}" entry point in ./scripts/shared/inlinedHostConfigs.js. ` +
-        'Did you mean to add it there to associate it with a specific renderer?'
-    );
-  },
-
-  'react-server/src/ReactServerFormatConfig': (
-    bundleType,
-    entry,
-    dependencies,
-    moduleType
-  ) => {
-    if (dependencies.indexOf('react-server') !== -1) {
-      return null;
-    }
-    if (moduleType !== RENDERER && moduleType !== RECONCILER) {
-      return null;
-    }
-    // eslint-disable-next-line no-for-of-loops/no-for-of-loops
-    for (let rendererInfo of inlinedHostConfigs) {
-      if (rendererInfo.entryPoints.indexOf(entry) !== -1) {
-        if (!rendererInfo.isServerSupported) {
-          return null;
-        }
-        return `react-server/src/forks/ReactServerFormatConfig.${
-          rendererInfo.shortName
-        }.js`;
-      }
-    }
-    throw new Error(
-      'Expected ReactServerFormatConfig to always be replaced with a shim, but ' +
-        `found no mention of "${entry}" entry point in ./scripts/shared/inlinedHostConfigs.js. ` +
-        'Did you mean to add it there to associate it with a specific renderer?'
-    );
-  },
-
-  'react-flight/src/ReactFlightClientHostConfig': (
-    bundleType,
-    entry,
-    dependencies,
-    moduleType
-  ) => {
-    if (dependencies.indexOf('react-flight') !== -1) {
-      return null;
-    }
-    if (moduleType !== RENDERER && moduleType !== RECONCILER) {
-      return null;
-    }
-    // eslint-disable-next-line no-for-of-loops/no-for-of-loops
-    for (let rendererInfo of inlinedHostConfigs) {
-      if (rendererInfo.entryPoints.indexOf(entry) !== -1) {
-        if (!rendererInfo.isServerSupported) {
-          return null;
-        }
-        return `react-flight/src/forks/ReactFlightClientHostConfig.${
-          rendererInfo.shortName
-        }.js`;
-      }
-    }
-    throw new Error(
-      'Expected ReactFlightClientHostConfig to always be replaced with a shim, but ' +
-        `found no mention of "${entry}" entry point in ./scripts/shared/inlinedHostConfigs.js. ` +
-        'Did you mean to add it there to associate it with a specific renderer?'
-    );
-  },
-
   // We wrap top-level listeners into guards on www.
   'react-dom/src/events/EventListener': (bundleType, entry) => {
     switch (bundleType) {
@@ -394,9 +286,9 @@ const forks = Object.freeze({
   },
 
   // React DOM uses different top level event names and supports mouse events.
-  'legacy-events/ResponderTopLevelEventTypes': (bundleType, entry) => {
+  'events/ResponderTopLevelEventTypes': (bundleType, entry) => {
     if (entry === 'react-dom' || entry.startsWith('react-dom/')) {
-      return 'legacy-events/forks/ResponderTopLevelEventTypes.dom.js';
+      return 'events/forks/ResponderTopLevelEventTypes.dom.js';
     }
     return null;
   },

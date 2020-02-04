@@ -397,7 +397,7 @@ describe('ReactComponent', () => {
   it('throws usefully when rendering badly-typed elements', () => {
     const X = undefined;
     expect(() => {
-      expect(() => ReactTestUtils.renderIntoDocument(<X />)).toErrorDev(
+      expect(() => ReactTestUtils.renderIntoDocument(<X />)).toWarnDev(
         'React.createElement: type is invalid -- expected a string (for built-in components) ' +
           'or a class/function (for composite components) but got: undefined.',
       );
@@ -412,7 +412,7 @@ describe('ReactComponent', () => {
 
     const Y = null;
     expect(() => {
-      expect(() => ReactTestUtils.renderIntoDocument(<Y />)).toErrorDev(
+      expect(() => ReactTestUtils.renderIntoDocument(<Y />)).toWarnDev(
         'React.createElement: type is invalid -- expected a string (for built-in components) ' +
           'or a class/function (for composite components) but got: null.',
       );
@@ -442,7 +442,7 @@ describe('ReactComponent', () => {
     }
 
     expect(() => {
-      expect(() => ReactTestUtils.renderIntoDocument(<Foo />)).toErrorDev(
+      expect(() => ReactTestUtils.renderIntoDocument(<Foo />)).toWarnDev(
         'React.createElement: type is invalid -- expected a string (for built-in components) ' +
           'or a class/function (for composite components) but got: undefined.',
       );
@@ -572,7 +572,7 @@ describe('ReactComponent', () => {
         return Foo;
       }
       const container = document.createElement('div');
-      expect(() => ReactDOM.render(<Foo />, container)).toErrorDev(
+      expect(() => ReactDOM.render(<Foo />, container)).toWarnDev(
         'Warning: Functions are not valid as a React child. This may happen if ' +
           'you return a Component instead of <Component /> from render. ' +
           'Or maybe you meant to call this function rather than return it.\n' +
@@ -587,7 +587,7 @@ describe('ReactComponent', () => {
         }
       }
       const container = document.createElement('div');
-      expect(() => ReactDOM.render(<Foo />, container)).toErrorDev(
+      expect(() => ReactDOM.render(<Foo />, container)).toWarnDev(
         'Warning: Functions are not valid as a React child. This may happen if ' +
           'you return a Component instead of <Component /> from render. ' +
           'Or maybe you meant to call this function rather than return it.\n' +
@@ -604,7 +604,7 @@ describe('ReactComponent', () => {
         );
       }
       const container = document.createElement('div');
-      expect(() => ReactDOM.render(<Foo />, container)).toErrorDev(
+      expect(() => ReactDOM.render(<Foo />, container)).toWarnDev(
         'Warning: Functions are not valid as a React child. This may happen if ' +
           'you return a Component instead of <Component /> from render. ' +
           'Or maybe you meant to call this function rather than return it.\n' +
@@ -649,7 +649,7 @@ describe('ReactComponent', () => {
       let component;
       expect(() => {
         component = ReactDOM.render(<Foo />, container);
-      }).toErrorDev([
+      }).toWarnDev([
         'Warning: Functions are not valid as a React child. This may happen if ' +
           'you return a Component instead of <Component /> from render. ' +
           'Or maybe you meant to call this function rather than return it.\n' +

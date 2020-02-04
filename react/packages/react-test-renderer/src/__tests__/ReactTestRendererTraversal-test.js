@@ -39,20 +39,20 @@ describe('ReactTestRendererTraversal', () => {
               <View void="void" />
               <View void="void" />
             </ExampleNull>
-            <React.Profiler id="test" onRender={() => {}}>
+            <React.unstable_Profiler id="test" onRender={() => {}}>
               <ExampleForwardRef qux="qux" />
-            </React.Profiler>
-            <>
-              <>
+            </React.unstable_Profiler>
+            <React.Fragment>
+              <React.Fragment>
                 <Context.Provider value={null}>
                   <Context.Consumer>
                     {() => <View nested={true} />}
                   </Context.Consumer>
                 </Context.Provider>
-              </>
+              </React.Fragment>
               <View nested={true} />
               <View nested={true} />
-            </>
+            </React.Fragment>
           </View>
         </View>
       );
@@ -212,10 +212,10 @@ describe('ReactTestRendererTraversal', () => {
     ).toBe(2);
     expect(
       ReactTestRenderer.create(
-        <>
+        <React.Fragment>
           <div />
           <div />
-        </>,
+        </React.Fragment>,
       ).root.findAllByType('div').length,
     ).toBe(2);
     expect(

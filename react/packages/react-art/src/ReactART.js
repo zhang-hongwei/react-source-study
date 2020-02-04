@@ -7,12 +7,7 @@
 
 import React from 'react';
 import ReactVersion from 'shared/ReactVersion';
-import {LegacyRoot} from 'shared/ReactRootTags';
-import {
-  createContainer,
-  updateContainer,
-  injectIntoDevTools,
-} from 'react-reconciler/inline.art';
+import * as ARTRenderer from 'react-reconciler/inline.art';
 import Transform from 'art/core/transform';
 import Mode from 'art/modes/current';
 import FastNoSideEffects from 'art/modes/fast-noSideEffects';
@@ -66,8 +61,8 @@ class Surface extends React.Component {
 
     this._surface = Mode.Surface(+width, +height, this._tagRef);
 
-    this._mountNode = createContainer(this._surface, LegacyRoot, false, null);
-    updateContainer(this.props.children, this._mountNode, this);
+    this._mountNode = ARTRenderer.createContainer(this._surface);
+    ARTRenderer.updateContainer(this.props.children, this._mountNode, this);
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -77,7 +72,7 @@ class Surface extends React.Component {
       this._surface.resize(+props.width, +props.height);
     }
 
-    updateContainer(this.props.children, this._mountNode, this);
+    ARTRenderer.updateContainer(this.props.children, this._mountNode, this);
 
     if (this._surface.render) {
       this._surface.render();
@@ -85,7 +80,7 @@ class Surface extends React.Component {
   }
 
   componentWillUnmount() {
-    updateContainer(null, this._mountNode, this);
+    ARTRenderer.updateContainer(null, this._mountNode, this);
   }
 
   render() {
@@ -137,7 +132,7 @@ class Text extends React.Component {
   }
 }
 
-injectIntoDevTools({
+ARTRenderer.injectIntoDevTools({
   findFiberByHostInstance: () => null,
   bundleType: __DEV__ ? 1 : 0,
   version: ReactVersion,

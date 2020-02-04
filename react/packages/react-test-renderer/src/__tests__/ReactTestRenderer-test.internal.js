@@ -19,7 +19,6 @@ const prettyFormat = require('pretty-format');
 // Isolate noop renderer
 jest.resetModules();
 const ReactNoop = require('react-noop-renderer');
-const Scheduler = require('scheduler');
 
 // Kind of hacky, but we nullify all the instances to test the tree structure
 // with jasmine's deep equality function, and test the instances separate. We
@@ -281,11 +280,9 @@ describe('ReactTestRenderer', () => {
       }
     }
     ReactTestRenderer.create(<Baz />);
-    expect(() => ReactTestRenderer.create(<Foo />)).toErrorDev(
+    expect(() => ReactTestRenderer.create(<Foo />)).toWarnDev(
       'Warning: Function components cannot be given refs. Attempts ' +
-        'to access this ref will fail. ' +
-        'Did you mean to use React.forwardRef()?\n\n' +
-        'Check the render method of `Foo`.\n' +
+        'to access this ref will fail.\n\nCheck the render method of `Foo`.\n' +
         '    in Bar (at **)\n' +
         '    in Foo (at **)',
     );
@@ -544,9 +541,9 @@ describe('ReactTestRenderer', () => {
 
   it('toTree() handles nested Fragments', () => {
     const Foo = () => (
-      <>
-        <>foo</>
-      </>
+      <React.Fragment>
+        <React.Fragment>foo</React.Fragment>
+      </React.Fragment>
     );
     const renderer = ReactTestRenderer.create(<Foo />);
     const tree = renderer.toTree();
@@ -707,16 +704,16 @@ describe('ReactTestRenderer', () => {
 
   it('toTree() handles complicated tree of fragments', () => {
     const renderer = ReactTestRenderer.create(
-      <>
-        <>
+      <React.Fragment>
+        <React.Fragment>
           <div>One</div>
           <div>Two</div>
-          <>
+          <React.Fragment>
             <div>Three</div>
-          </>
-        </>
+          </React.Fragment>
+        </React.Fragment>
         <div>Four</div>
-      </>,
+      </React.Fragment>,
     );
 
     const tree = renderer.toTree();
@@ -1019,7 +1016,7 @@ describe('ReactTestRenderer', () => {
       </Context.Provider>
     );
     ReactNoop.render(<App />);
-    expect(Scheduler).toFlushWithoutYielding();
+    ReactNoop.flush();
     ReactTestRenderer.create(<App />);
   });
 });

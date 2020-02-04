@@ -9,7 +9,7 @@
 const babylon = require('babylon');
 const fs = require('fs');
 const through = require('through2');
-const traverse = require('@babel/traverse').default;
+const traverse = require('babel-traverse').default;
 const gs = require('glob-stream');
 
 const evalToString = require('../shared/evalToString');
@@ -38,42 +38,22 @@ function transform(file, enc, cb) {
       return;
     }
 
-    let ast;
-    try {
-      ast = babylon.parse(source, babylonOptions);
-    } catch (error) {
-      console.error('Failed to parse source file:', file.path);
-      throw error;
-    }
-
+    const ast = babylon.parse(source, babylonOptions);
     traverse(ast, {
       CallExpression: {
         exit: function(astPath) {
           const callee = astPath.get('callee');
           if (
-            callee.matchesPattern('console.warn') ||
-            callee.matchesPattern('console.error')
+            callee.isIdentifier({name: 'warning'}) ||
+            callee.isIdentifier({name: 'warningWithoutStack'}) ||
+            callee.isIdentifier({name: 'lowPriorityWarning'})
           ) {
             const node = astPath.node;
-            if (node.callee.type !== 'MemberExpression') {
-              return;
-            }
-            if (node.callee.property.type !== 'Identifier') {
-              return;
-            }
+
             // warning messages can be concatenated (`+`) at runtime, so here's
             // a trivial partial evaluator that interprets the literal value
-            try {
-              const warningMsgLiteral = evalToString(node.arguments[0]);
-              warnings.add(JSON.stringify(warningMsgLiteral));
-            } catch (error) {
-              console.error(
-                'Failed to extract warning message from',
-                file.path
-              );
-              console.error(astPath.node.loc);
-              throw error;
-            }
+            const warningMsgLiteral = evalToString(node.arguments[1]);
+            warnings.add(JSON.stringify(warningMsgLiteral));
           }
         },
       },
@@ -85,9 +65,7 @@ function transform(file, enc, cb) {
 
 gs([
   'packages/**/*.js',
-  '!packages/*/npm/**/*.js',
-  '!packages/shared/consoleWithStackDev.js',
-  '!packages/react-devtools*/**/*.js',
+  '!packages/shared/warning.js',
   '!**/__tests__/**/*.js',
   '!**/__mocks__/**/*.js',
 ]).pipe(

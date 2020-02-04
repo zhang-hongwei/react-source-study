@@ -1,13 +1,9 @@
 {
   "name": "react-test-renderer",
-  "version": "16.12.0",
+  "version": "16.6.0",
   "description": "React package for snapshot testing.",
   "main": "index.js",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/facebook/react.git",
-    "directory": "packages/react-test-renderer"
-  },
+  "repository": "facebook/react",
   "keywords": [
     "react",
     "react-native",
@@ -21,8 +17,8 @@
   "dependencies": {
     "object-assign": "^4.1.1",
     "prop-types": "^15.6.2",
-    "react-is": "^16.8.6",
-    "scheduler": "^0.18.0"
+    "react-is": "^16.6.0",
+    "scheduler": "^0.10.0"
   },
   "peerDependencies": {
     "react": "^16.0.0"
@@ -30,7 +26,6 @@
   "files": [
     "LICENSE",
     "README.md",
-    "build-info.json",
     "index.js",
     "shallow.js",
     "cjs/",

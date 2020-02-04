@@ -5,15 +5,16 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+export {
+  unstable_now as now,
+  unstable_scheduleCallback as scheduleDeferredCallback,
+  unstable_cancelCallback as cancelDeferredCallback,
+} from 'scheduler';
 import Transform from 'art/core/transform';
 import Mode from 'art/modes/current';
 import invariant from 'shared/invariant';
 
 import {TYPES, EVENT_TYPES, childrenAsString} from './ReactARTInternals';
-import type {
-  ReactEventResponder,
-  ReactEventResponderInstance,
-} from 'shared/ReactTypes';
 
 const pooledTransform = new Transform();
 
@@ -345,9 +346,6 @@ export function shouldSetTextContent(type, props) {
 // The ART renderer is secondary to the React DOM renderer.
 export const isPrimaryRenderer = false;
 
-// The ART renderer shouldn't trigger missing act() warnings
-export const warnsIfNotActing = false;
-
 export const supportsMutation = true;
 
 export function appendChild(parentInstance, child) {
@@ -424,48 +422,4 @@ export function unhideInstance(instance, props) {
 
 export function unhideTextInstance(textInstance, text): void {
   // Noop
-}
-
-export function DEPRECATED_mountResponderInstance(
-  responder: ReactEventResponder<any, any>,
-  responderInstance: ReactEventResponderInstance<any, any>,
-  props: Object,
-  state: Object,
-  instance: Object,
-) {
-  throw new Error('Not yet implemented.');
-}
-
-export function DEPRECATED_unmountResponderInstance(
-  responderInstance: ReactEventResponderInstance<any, any>,
-): void {
-  throw new Error('Not yet implemented.');
-}
-
-export function getFundamentalComponentInstance(fundamentalInstance) {
-  throw new Error('Not yet implemented.');
-}
-
-export function mountFundamentalComponent(fundamentalInstance) {
-  throw new Error('Not yet implemented.');
-}
-
-export function shouldUpdateFundamentalComponent(fundamentalInstance) {
-  throw new Error('Not yet implemented.');
-}
-
-export function updateFundamentalComponent(fundamentalInstance) {
-  throw new Error('Not yet implemented.');
-}
-
-export function unmountFundamentalComponent(fundamentalInstance) {
-  throw new Error('Not yet implemented.');
-}
-
-export function getInstanceFromNode(node) {
-  throw new Error('Not yet implemented.');
-}
-
-export function beforeRemoveInstance(instance) {
-  // noop
 }

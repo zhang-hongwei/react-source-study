@@ -178,11 +178,11 @@ describe('ReactDOMFiber', () => {
 
   it('renders an empty fragment', () => {
     const Div = () => <div />;
-    const EmptyFragment = () => <></>;
+    const EmptyFragment = () => <React.Fragment />;
     const NonEmptyFragment = () => (
-      <>
+      <React.Fragment>
         <Div />
-      </>
+      </React.Fragment>
     );
 
     ReactDOM.render(<EmptyFragment />, container);
@@ -257,7 +257,7 @@ describe('ReactDOMFiber', () => {
         </div>,
         container,
       ),
-    ).toWarnDev(
+    ).toLowPriorityWarnDev(
       'The ReactDOM.unstable_createPortal() alias has been deprecated, ' +
         'and will be removed in React 17+. Update your code to use ' +
         'ReactDOM.createPortal() instead. It has the exact same API, ' +
@@ -459,40 +459,6 @@ describe('ReactDOMFiber', () => {
     );
     expect(portalContainer.innerHTML).toBe('');
     expect(container.innerHTML).toBe('<div></div>');
-  });
-
-  it('should unmount empty portal component wherever it appears', () => {
-    const portalContainer = document.createElement('div');
-
-    class Wrapper extends React.Component {
-      constructor(props) {
-        super(props);
-        this.state = {
-          show: true,
-        };
-      }
-      render() {
-        return (
-          <div>
-            {this.state.show && (
-              <>
-                {ReactDOM.createPortal(null, portalContainer)}
-                <div>child</div>
-              </>
-            )}
-            <div>parent</div>
-          </div>
-        );
-      }
-    }
-
-    const instance = ReactDOM.render(<Wrapper />, container);
-    expect(container.innerHTML).toBe(
-      '<div><div>child</div><div>parent</div></div>',
-    );
-    instance.setState({show: false});
-    expect(instance.state.show).toBe(false);
-    expect(container.innerHTML).toBe('<div><div>parent</div></div>');
   });
 
   it('should keep track of namespace across portals (simple)', () => {
@@ -1002,7 +968,7 @@ describe('ReactDOMFiber', () => {
         return <div onClick="woops" />;
       }
     }
-    expect(() => ReactDOM.render(<Example />, container)).toErrorDev(
+    expect(() => ReactDOM.render(<Example />, container)).toWarnDev(
       'Expected `onClick` listener to be a function, instead got a value of `string` type.\n' +
         '    in div (at **)\n' +
         '    in Example (at **)',
@@ -1015,7 +981,7 @@ describe('ReactDOMFiber', () => {
         return <div onClick={false} />;
       }
     }
-    expect(() => ReactDOM.render(<Example />, container)).toErrorDev(
+    expect(() => ReactDOM.render(<Example />, container)).toWarnDev(
       'Expected `onClick` listener to be a function, instead got `false`.\n\n' +
         'If you used to conditionally omit it with onClick={condition && value}, ' +
         'pass onClick={condition ? value : undefined} instead.\n' +
@@ -1046,11 +1012,7 @@ describe('ReactDOMFiber', () => {
     class Click extends React.Component {
       constructor() {
         super();
-        expect(() => {
-          node.click();
-        }).toErrorDev(
-          'Warning: unstable_flushDiscreteUpdates: Cannot flush updates when React is already rendering.',
-        );
+        node.click();
       }
       render() {
         return null;
@@ -1133,7 +1095,7 @@ describe('ReactDOMFiber', () => {
     expect(() => {
       expect(() =>
         ReactDOM.render(<div key="2">baz</div>, container),
-      ).toErrorDev(
+      ).toWarnDev(
         'render(...): ' +
           'It looks like the React-rendered content of this container was ' +
           'removed without using React. This is not supported and will ' +
@@ -1151,7 +1113,7 @@ describe('ReactDOMFiber', () => {
     expect(container.innerHTML).toBe('<div>bar</div>');
     // then we mess with the DOM before an update
     container.innerHTML = '<div>MEOW.</div>';
-    expect(() => ReactDOM.render(<div>baz</div>, container)).toErrorDev(
+    expect(() => ReactDOM.render(<div>baz</div>, container)).toWarnDev(
       'render(...): ' +
         'It looks like the React-rendered content of this container was ' +
         'removed without using React. This is not supported and will ' +
@@ -1168,7 +1130,7 @@ describe('ReactDOMFiber', () => {
     expect(container.innerHTML).toBe('<div>bar</div>');
     // then we mess with the DOM before an update
     container.innerHTML = '';
-    expect(() => ReactDOM.render(<div>baz</div>, container)).toErrorDev(
+    expect(() => ReactDOM.render(<div>baz</div>, container)).toWarnDev(
       'render(...): ' +
         'It looks like the React-rendered content of this container was ' +
         'removed without using React. This is not supported and will ' +

@@ -406,10 +406,11 @@ describe('ReactCompositeComponent-state', () => {
     const container = document.createElement('div');
     ReactDOM.render(<Test />, container);
     // Update
-    expect(() => ReactDOM.render(<Test />, container)).toErrorDev(
+    expect(() => ReactDOM.render(<Test />, container)).toWarnDev(
       'Warning: Test.componentWillReceiveProps(): Assigning directly to ' +
         "this.state is deprecated (except inside a component's constructor). " +
         'Use setState instead.',
+      {withoutStack: true},
     );
 
     expect(ops).toEqual([
@@ -447,10 +448,11 @@ describe('ReactCompositeComponent-state', () => {
 
     // Mount
     const container = document.createElement('div');
-    expect(() => ReactDOM.render(<Test />, container)).toErrorDev(
+    expect(() => ReactDOM.render(<Test />, container)).toWarnDev(
       'Warning: Test.componentWillMount(): Assigning directly to ' +
         "this.state is deprecated (except inside a component's constructor). " +
         'Use setState instead.',
+      {withoutStack: true},
     );
 
     expect(ops).toEqual([
@@ -472,13 +474,7 @@ describe('ReactCompositeComponent-state', () => {
     }
 
     const el = document.createElement('div');
-    expect(() => ReactDOM.render(<Child />, el)).toErrorDev(
-      'Warning: The <Child /> component appears to be a function component that returns a class instance. ' +
-        'Change Child to a class that extends React.Component instead. ' +
-        "If you can't use a class try assigning the prototype on the function as a workaround. " +
-        '`Child.prototype = React.Component.prototype`. ' +
-        "Don't use an arrow function since it cannot be called with `new` by React.",
-    );
+    ReactDOM.render(<Child />, el);
 
     expect(el.textContent).toBe('count:123');
   });

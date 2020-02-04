@@ -1,6 +1,5 @@
 import {parse, stringify} from 'query-string';
-import VersionPicker from './VersionPicker';
-
+import getVersionTags from '../tags';
 const React = window.React;
 
 class Header extends React.Component {
@@ -8,24 +7,21 @@ class Header extends React.Component {
     super(props, context);
     const query = parse(window.location.search);
     const version = query.version || 'local';
-    const production = query.production || false;
     const versions = [version];
-
-    this.state = {version, versions, production};
+    this.state = {version, versions};
   }
-  handleVersionChange(version) {
+  componentWillMount() {
+    getVersionTags().then(tags => {
+      let versions = tags.map(tag => tag.name.slice(1));
+      versions = [`local`, ...versions];
+      this.setState({versions});
+    });
+  }
+  handleVersionChange(event) {
     const query = parse(window.location.search);
-    query.version = version;
+    query.version = event.target.value;
     if (query.version === 'local') {
       delete query.version;
-    }
-    window.location.search = stringify(query);
-  }
-  handleProductionChange(event) {
-    const query = parse(window.location.search);
-    query.production = event.target.checked;
-    if (!query.production) {
-      delete query.production;
     }
     window.location.search = stringify(query);
   }
@@ -43,23 +39,10 @@ class Header extends React.Component {
               width="20"
               height="20"
             />
-            <a href="/">
-              DOM Test Fixtures (v
-              {React.version})
-            </a>
+            <a href="/">DOM Test Fixtures (v{React.version})</a>
           </span>
 
           <div className="header-controls">
-            <input
-              id="react_production"
-              className="header__checkbox"
-              type="checkbox"
-              checked={this.state.production}
-              onChange={this.handleProductionChange}
-            />
-            <label htmlFor="react_production" className="header__label">
-              Production
-            </label>
             <label htmlFor="example">
               <span className="sr-only">Select an example</span>
               <select
@@ -88,14 +71,17 @@ class Header extends React.Component {
                 <option value="/suspense">Suspense</option>
               </select>
             </label>
-            <label htmlFor="global_version">
+            <label htmlFor="react_version">
               <span className="sr-only">Select a version to test</span>
-              <VersionPicker
-                id="global_version"
-                name="global_version"
-                version={this.state.version}
-                onChange={this.handleVersionChange}
-              />
+              <select
+                value={this.state.version}
+                onChange={this.handleVersionChange}>
+                {this.state.versions.map(version => (
+                  <option key={version} value={version}>
+                    {version}
+                  </option>
+                ))}
+              </select>
             </label>
           </div>
         </div>

@@ -166,16 +166,7 @@ describe('factory components', () => {
       };
     }
 
-    let inst;
-    expect(
-      () => (inst = ReactTestUtils.renderIntoDocument(<Comp />)),
-    ).toErrorDev(
-      'Warning: The <Comp /> component appears to be a function component that returns a class instance. ' +
-        'Change Comp to a class that extends React.Component instead. ' +
-        "If you can't use a class try assigning the prototype on the function as a workaround. " +
-        '`Comp.prototype = React.Component.prototype`. ' +
-        "Don't use an arrow function since it cannot be called with `new` by React.",
-    );
+    const inst = ReactTestUtils.renderIntoDocument(<Comp />);
     expect(inst.refs.elemRef.tagName).toBe('DIV');
   });
 });

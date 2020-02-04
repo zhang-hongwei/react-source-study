@@ -126,33 +126,6 @@ describe('ReactDOMTextarea', () => {
     expect(node.value).toEqual('gorilla');
   });
 
-  it('will not initially assign an empty value (covers case where firefox throws a validation error when required attribute is set)', () => {
-    const container = document.createElement('div');
-
-    let counter = 0;
-    const originalCreateElement = document.createElement;
-    spyOnDevAndProd(document, 'createElement').and.callFake(function(type) {
-      const el = originalCreateElement.apply(this, arguments);
-      let value = '';
-      if (type === 'textarea') {
-        Object.defineProperty(el, 'value', {
-          get: function() {
-            return value;
-          },
-          set: function(val) {
-            value = '' + val;
-            counter++;
-          },
-        });
-      }
-      return el;
-    });
-
-    ReactDOM.render(<textarea value="" readOnly={true} />, container);
-
-    expect(counter).toEqual(0);
-  });
-
   it('should render defaultValue for SSR', () => {
     const markup = ReactDOMServer.renderToString(<textarea defaultValue="1" />);
     const div = document.createElement('div');
@@ -294,7 +267,7 @@ describe('ReactDOMTextarea', () => {
 
     expect(() => {
       node = renderTextarea(stub, container);
-    }).toErrorDev(
+    }).toWarnDev(
       'Use the `defaultValue` or `value` props instead of setting children on <textarea>.',
     );
 
@@ -346,7 +319,7 @@ describe('ReactDOMTextarea', () => {
     let node;
     expect(() => {
       node = renderTextarea(<textarea>{17}</textarea>);
-    }).toErrorDev(
+    }).toWarnDev(
       'Use the `defaultValue` or `value` props instead of setting children on <textarea>.',
     );
     expect(node.value).toBe('17');
@@ -356,7 +329,7 @@ describe('ReactDOMTextarea', () => {
     let node;
     expect(() => {
       node = renderTextarea(<textarea>{false}</textarea>);
-    }).toErrorDev(
+    }).toWarnDev(
       'Use the `defaultValue` or `value` props instead of setting children on <textarea>.',
     );
     expect(node.value).toBe('false');
@@ -371,7 +344,7 @@ describe('ReactDOMTextarea', () => {
     let node;
     expect(() => {
       node = renderTextarea(<textarea>{obj}</textarea>);
-    }).toErrorDev(
+    }).toWarnDev(
       'Use the `defaultValue` or `value` props instead of setting children on <textarea>.',
     );
     expect(node.value).toBe('sharkswithlasers');
@@ -387,7 +360,7 @@ describe('ReactDOMTextarea', () => {
           </textarea>,
         ),
       ).toThrow('<textarea> can only have at most one child');
-    }).toErrorDev(
+    }).toWarnDev(
       'Use the `defaultValue` or `value` props instead of setting children on <textarea>.',
     );
 
@@ -401,7 +374,7 @@ describe('ReactDOMTextarea', () => {
             </textarea>,
           )),
       ).not.toThrow();
-    }).toErrorDev(
+    }).toWarnDev(
       'Use the `defaultValue` or `value` props instead of setting children on <textarea>.',
     );
 
@@ -417,7 +390,7 @@ describe('ReactDOMTextarea', () => {
   it('should warn if value is null', () => {
     expect(() =>
       ReactTestUtils.renderIntoDocument(<textarea value={null} />),
-    ).toErrorDev(
+    ).toWarnDev(
       '`value` prop on `textarea` should not be null. ' +
         'Consider using an empty string to clear the component or `undefined` ' +
         'for uncontrolled components.',
@@ -433,7 +406,7 @@ describe('ReactDOMTextarea', () => {
     );
     expect(() =>
       ReactTestUtils.renderIntoDocument(<InvalidComponent />),
-    ).toErrorDev(
+    ).toWarnDev(
       'InvalidComponent contains a textarea with both value and defaultValue props. ' +
         'Textarea elements must be either controlled or uncontrolled ' +
         '(specify either the value prop, or the defaultValue prop, but not ' +
@@ -501,7 +474,7 @@ describe('ReactDOMTextarea', () => {
           <textarea value={Symbol('foobar')} onChange={() => {}} />,
           container,
         ),
-      ).toErrorDev('Invalid value for prop `value`');
+      ).toWarnDev('Invalid value for prop `value`');
       const node = container.firstChild;
 
       expect(node.value).toBe('');
@@ -514,7 +487,7 @@ describe('ReactDOMTextarea', () => {
           <textarea onChange={() => {}}>{Symbol('foo')}</textarea>,
           container,
         ),
-      ).toErrorDev('Use the `defaultValue` or `value` props');
+      ).toWarnDev('Use the `defaultValue` or `value` props');
       const node = container.firstChild;
 
       expect(node.value).toBe('');
@@ -528,7 +501,7 @@ describe('ReactDOMTextarea', () => {
           <textarea value={Symbol('foo')} onChange={() => {}} />,
           container,
         ),
-      ).toErrorDev('Invalid value for prop `value`');
+      ).toWarnDev('Invalid value for prop `value`');
       const node = container.firstChild;
 
       expect(node.value).toBe('');
@@ -562,7 +535,7 @@ describe('ReactDOMTextarea', () => {
           <textarea value={() => {}} onChange={() => {}} />,
           container,
         ),
-      ).toErrorDev('Invalid value for prop `value`');
+      ).toWarnDev('Invalid value for prop `value`');
       const node = container.firstChild;
 
       expect(node.value).toBe('');
@@ -575,7 +548,7 @@ describe('ReactDOMTextarea', () => {
           <textarea onChange={() => {}}>{() => {}}</textarea>,
           container,
         ),
-      ).toErrorDev('Use the `defaultValue` or `value` props');
+      ).toWarnDev('Use the `defaultValue` or `value` props');
       const node = container.firstChild;
 
       expect(node.value).toBe('');
@@ -589,7 +562,7 @@ describe('ReactDOMTextarea', () => {
           <textarea value={() => {}} onChange={() => {}} />,
           container,
         ),
-      ).toErrorDev('Invalid value for prop `value`');
+      ).toWarnDev('Invalid value for prop `value`');
       const node = container.firstChild;
 
       expect(node.value).toBe('');

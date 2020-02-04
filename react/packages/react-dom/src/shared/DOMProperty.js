@@ -7,7 +7,7 @@
  * @flow
  */
 
-import {enableDeprecatedFlareAPI} from 'shared/ReactFeatureFlags';
+import warning from 'shared/warning';
 
 type PropertyType = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -51,7 +51,6 @@ export type PropertyInfo = {|
   +mustUseProperty: boolean,
   +propertyName: string,
   +type: PropertyType,
-  +sanitizeURL: boolean,
 |};
 
 /* eslint-disable max-len */
@@ -84,7 +83,7 @@ export function isAttributeNameSafe(attributeName: string): boolean {
   }
   illegalAttributeNameCache[attributeName] = true;
   if (__DEV__) {
-    console.error('Invalid attribute name: `%s`', attributeName);
+    warning(false, 'Invalid attribute name: `%s`', attributeName);
   }
   return false;
 }
@@ -187,7 +186,6 @@ function PropertyInfoRecord(
   mustUseProperty: boolean,
   attributeName: string,
   attributeNamespace: string | null,
-  sanitizeURL: boolean,
 ) {
   this.acceptsBooleans =
     type === BOOLEANISH_STRING ||
@@ -198,7 +196,6 @@ function PropertyInfoRecord(
   this.mustUseProperty = mustUseProperty;
   this.propertyName = name;
   this.type = type;
-  this.sanitizeURL = sanitizeURL;
 }
 
 // When adding attributes to this list, be sure to also add them to
@@ -207,7 +204,7 @@ function PropertyInfoRecord(
 const properties = {};
 
 // These props are reserved by React. They shouldn't be written to the DOM.
-const reservedProps = [
+[
   'children',
   'dangerouslySetInnerHTML',
   // TODO: This prevents the assignment of defaultValue to regular
@@ -219,19 +216,13 @@ const reservedProps = [
   'suppressContentEditableWarning',
   'suppressHydrationWarning',
   'style',
-];
-if (enableDeprecatedFlareAPI) {
-  reservedProps.push('DEPRECATED_flareListeners');
-}
-
-reservedProps.forEach(name => {
+].forEach(name => {
   properties[name] = new PropertyInfoRecord(
     name,
     RESERVED,
     false, // mustUseProperty
     name, // attributeName
     null, // attributeNamespace
-    false, // sanitizeURL
   );
 });
 
@@ -249,7 +240,6 @@ reservedProps.forEach(name => {
     false, // mustUseProperty
     attributeName, // attributeName
     null, // attributeNamespace
-    false, // sanitizeURL
   );
 });
 
@@ -263,7 +253,6 @@ reservedProps.forEach(name => {
     false, // mustUseProperty
     name.toLowerCase(), // attributeName
     null, // attributeNamespace
-    false, // sanitizeURL
   );
 });
 
@@ -283,7 +272,6 @@ reservedProps.forEach(name => {
     false, // mustUseProperty
     name, // attributeName
     null, // attributeNamespace
-    false, // sanitizeURL
   );
 });
 
@@ -299,7 +287,6 @@ reservedProps.forEach(name => {
   'default',
   'defer',
   'disabled',
-  'disablePictureInPicture',
   'formNoValidate',
   'hidden',
   'loop',
@@ -321,7 +308,6 @@ reservedProps.forEach(name => {
     false, // mustUseProperty
     name.toLowerCase(), // attributeName
     null, // attributeNamespace
-    false, // sanitizeURL
   );
 });
 
@@ -345,7 +331,6 @@ reservedProps.forEach(name => {
     true, // mustUseProperty
     name, // attributeName
     null, // attributeNamespace
-    false, // sanitizeURL
   );
 });
 
@@ -365,7 +350,6 @@ reservedProps.forEach(name => {
     false, // mustUseProperty
     name, // attributeName
     null, // attributeNamespace
-    false, // sanitizeURL
   );
 });
 
@@ -386,7 +370,6 @@ reservedProps.forEach(name => {
     false, // mustUseProperty
     name, // attributeName
     null, // attributeNamespace
-    false, // sanitizeURL
   );
 });
 
@@ -398,7 +381,6 @@ reservedProps.forEach(name => {
     false, // mustUseProperty
     name.toLowerCase(), // attributeName
     null, // attributeNamespace
-    false, // sanitizeURL
   );
 });
 
@@ -496,7 +478,6 @@ const capitalize = token => token[1].toUpperCase();
     false, // mustUseProperty
     attributeName,
     null, // attributeNamespace
-    false, // sanitizeURL
   );
 });
 
@@ -504,6 +485,7 @@ const capitalize = token => token[1].toUpperCase();
 [
   'xlink:actuate',
   'xlink:arcrole',
+  'xlink:href',
   'xlink:role',
   'xlink:show',
   'xlink:title',
@@ -520,7 +502,6 @@ const capitalize = token => token[1].toUpperCase();
     false, // mustUseProperty
     attributeName,
     'http://www.w3.org/1999/xlink',
-    false, // sanitizeURL
   );
 });
 
@@ -541,43 +522,16 @@ const capitalize = token => token[1].toUpperCase();
     false, // mustUseProperty
     attributeName,
     'http://www.w3.org/XML/1998/namespace',
-    false, // sanitizeURL
   );
 });
 
-// These attribute exists both in HTML and SVG.
-// The attribute name is case-sensitive in SVG so we can't just use
-// the React name like we do for attributes that exist only in HTML.
-['tabIndex', 'crossOrigin'].forEach(attributeName => {
-  properties[attributeName] = new PropertyInfoRecord(
-    attributeName,
-    STRING,
-    false, // mustUseProperty
-    attributeName.toLowerCase(), // attributeName
-    null, // attributeNamespace
-    false, // sanitizeURL
-  );
-});
-
-// These attributes accept URLs. These must not allow javascript: URLS.
-// These will also need to accept Trusted Types object in the future.
-const xlinkHref = 'xlinkHref';
-properties[xlinkHref] = new PropertyInfoRecord(
-  'xlinkHref',
+// Special case: this attribute exists both in HTML and SVG.
+// Its "tabindex" attribute name is case-sensitive in SVG so we can't just use
+// its React `tabIndex` name, like we do for attributes that exist only in HTML.
+properties.tabIndex = new PropertyInfoRecord(
+  'tabIndex',
   STRING,
   false, // mustUseProperty
-  'xlink:href',
-  'http://www.w3.org/1999/xlink',
-  true, // sanitizeURL
+  'tabindex', // attributeName
+  null, // attributeNamespace
 );
-
-['src', 'href', 'action', 'formAction'].forEach(attributeName => {
-  properties[attributeName] = new PropertyInfoRecord(
-    attributeName,
-    STRING,
-    false, // mustUseProperty
-    attributeName.toLowerCase(), // attributeName
-    null, // attributeNamespace
-    true, // sanitizeURL
-  );
-});

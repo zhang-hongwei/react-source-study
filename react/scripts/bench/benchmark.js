@@ -1,10 +1,10 @@
 'use strict';
 
 const Lighthouse = require('lighthouse');
-const chromeLauncher = require('chrome-launcher');
-
+const ChromeLauncher = require('lighthouse/lighthouse-cli/chrome-launcher.js')
+  .ChromeLauncher;
 const stats = require('stats-analysis');
-const config = require('lighthouse/lighthouse-core/config/perf-config');
+const config = require('lighthouse/lighthouse-core/config/perf.json');
 const spawn = require('child_process').spawn;
 const os = require('os');
 
@@ -14,29 +14,27 @@ function wait(val) {
   return new Promise(resolve => setTimeout(resolve, val));
 }
 
-async function runScenario(benchmark, chrome) {
-  const port = chrome.port;
+async function runScenario(benchmark, launcher) {
   const results = await Lighthouse(
     `http://localhost:8080/${benchmark}/`,
     {
       output: 'json',
-      port,
+      disableCpuThrottling: false,
+      disableNetworkThrottling: false,
     },
     config
   );
-
-  const perfMarkings = results.lhr.audits['user-timings'].details.items;
+  const perfMarkings = results.audits['user-timings'].extendedInfo.value;
   const entries = perfMarkings
-    .filter(({timingType}) => timingType !== 'Mark')
+    .filter(marker => !marker.isMark)
     .map(({duration, name}) => ({
       entry: name,
       time: duration,
     }));
   entries.push({
     entry: 'First Meaningful Paint',
-    time: results.lhr.audits['first-meaningful-paint'].rawValue,
+    time: results.audits['first-meaningful-paint'].rawValue,
   });
-
   return entries;
 }
 
@@ -99,9 +97,16 @@ async function initChrome() {
 }
 
 async function launchChrome(headless) {
-  return await chromeLauncher.launch({
-    chromeFlags: [headless ? '--headless' : ''],
-  });
+  let launcher;
+  try {
+    launcher = new ChromeLauncher({
+      additionalFlags: [headless ? '--headless' : ''],
+    });
+    await launcher.isDebuggerReady();
+  } catch (e) {
+    return launcher.run();
+  }
+  return launcher;
 }
 
 async function runBenchmark(benchmark, headless) {
@@ -113,13 +118,13 @@ async function runBenchmark(benchmark, headless) {
   await initChrome();
 
   for (let i = 0; i < timesToRun; i++) {
-    let chrome = await launchChrome(headless);
+    let launcher = await launchChrome(headless);
 
-    results.runs.push(await runScenario(benchmark, chrome));
+    results.runs.push(await runScenario(benchmark, launcher));
     // add a delay or sometimes it confuses lighthouse and it hangs
     await wait(500);
     try {
-      await chrome.kill();
+      await launcher.kill();
     } catch (e) {}
   }
 

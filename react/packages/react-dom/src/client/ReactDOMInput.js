@@ -10,12 +10,13 @@
 // TODO: direct imports like some-package/src/* are bad. Fix me.
 import {getCurrentFiberOwnerNameInDevOrNull} from 'react-reconciler/src/ReactCurrentFiber';
 import invariant from 'shared/invariant';
+import warning from 'shared/warning';
 
-import {setValueForProperty} from './DOMPropertyOperations';
+import * as DOMPropertyOperations from './DOMPropertyOperations';
 import {getFiberCurrentPropsFromNode} from './ReactDOMComponentTree';
 import {getToStringValue, toString} from './ToStringValue';
 import ReactControlledValuePropTypes from '../shared/ReactControlledValuePropTypes';
-import {updateValueIfChanged} from './inputValueTracking';
+import * as inputValueTracking from './inputValueTracking';
 import {disableInputAttributeSyncing} from 'shared/ReactFeatureFlags';
 
 import type {ToStringValue} from './ToStringValue';
@@ -78,7 +79,8 @@ export function initWrapperState(element: Element, props: Object) {
       props.defaultChecked !== undefined &&
       !didWarnCheckedDefaultChecked
     ) {
-      console.error(
+      warning(
+        false,
         '%s contains an input of type %s with both checked and defaultChecked props. ' +
           'Input elements must be either controlled or uncontrolled ' +
           '(specify either the checked prop, or the defaultChecked prop, but not ' +
@@ -95,7 +97,8 @@ export function initWrapperState(element: Element, props: Object) {
       props.defaultValue !== undefined &&
       !didWarnValueDefaultValue
     ) {
-      console.error(
+      warning(
+        false,
         '%s contains an input of type %s with both value and defaultValue props. ' +
           'Input elements must be either controlled or uncontrolled ' +
           '(specify either the value prop, or the defaultValue prop, but not ' +
@@ -126,7 +129,7 @@ export function updateChecked(element: Element, props: Object) {
   const node = ((element: any): InputWithWrapperState);
   const checked = props.checked;
   if (checked != null) {
-    setValueForProperty(node, 'checked', checked, false);
+    DOMPropertyOperations.setValueForProperty(node, 'checked', checked, false);
   }
 }
 
@@ -140,7 +143,8 @@ export function updateWrapper(element: Element, props: Object) {
       controlled &&
       !didWarnUncontrolledToControlled
     ) {
-      console.error(
+      warning(
+        false,
         'A component is changing an uncontrolled input of type %s to be controlled. ' +
           'Input elements should not switch from uncontrolled to controlled (or vice versa). ' +
           'Decide between using a controlled or uncontrolled input ' +
@@ -154,7 +158,8 @@ export function updateWrapper(element: Element, props: Object) {
       !controlled &&
       !didWarnControlledToUncontrolled
     ) {
-      console.error(
+      warning(
+        false,
         'A component is changing a controlled input of type %s to be uncontrolled. ' +
           'Input elements should not switch from controlled to uncontrolled (or vice versa). ' +
           'Decide between using a controlled or uncontrolled input ' +
@@ -384,7 +389,7 @@ function updateNamedCousins(rootNode, props) {
 
       // We need update the tracked value on the named cousin since the value
       // was changed but the input saw no event or value set
-      updateValueIfChanged(otherNode);
+      inputValueTracking.updateValueIfChanged(otherNode);
 
       // If this is a controlled radio button group, forcing the input that
       // was previously checked to update will cause it to be come re-checked

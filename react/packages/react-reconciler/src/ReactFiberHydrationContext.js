@@ -12,66 +12,39 @@ import type {
   Instance,
   TextInstance,
   HydratableInstance,
-  SuspenseInstance,
   Container,
   HostContext,
 } from './ReactFiberHostConfig';
-import type {SuspenseState} from './ReactFiberSuspenseComponent';
 
-import {
-  HostComponent,
-  HostText,
-  HostRoot,
-  SuspenseComponent,
-} from 'shared/ReactWorkTags';
-import {Deletion, Placement, Hydrating} from 'shared/ReactSideEffectTags';
+import {HostComponent, HostText, HostRoot} from 'shared/ReactWorkTags';
+import {Deletion, Placement} from 'shared/ReactSideEffectTags';
 import invariant from 'shared/invariant';
 
-import {
-  createFiberFromHostInstanceForDeletion,
-  createFiberFromDehydratedFragment,
-} from './ReactFiber';
+import {createFiberFromHostInstanceForDeletion} from './ReactFiber';
 import {
   shouldSetTextContent,
   supportsHydration,
   canHydrateInstance,
   canHydrateTextInstance,
-  canHydrateSuspenseInstance,
   getNextHydratableSibling,
   getFirstHydratableChild,
   hydrateInstance,
   hydrateTextInstance,
-  hydrateSuspenseInstance,
-  getNextHydratableInstanceAfterSuspenseInstance,
   didNotMatchHydratedContainerTextInstance,
   didNotMatchHydratedTextInstance,
   didNotHydrateContainerInstance,
   didNotHydrateInstance,
   didNotFindHydratableContainerInstance,
   didNotFindHydratableContainerTextInstance,
-  didNotFindHydratableContainerSuspenseInstance,
   didNotFindHydratableInstance,
   didNotFindHydratableTextInstance,
-  didNotFindHydratableSuspenseInstance,
 } from './ReactFiberHostConfig';
-import {enableSuspenseServerRenderer} from 'shared/ReactFeatureFlags';
-import {Never} from './ReactFiberExpirationTime';
 
 // The deepest Fiber on the stack involved in a hydration context.
 // This may have been an insertion or a hydration.
 let hydrationParentFiber: null | Fiber = null;
 let nextHydratableInstance: null | HydratableInstance = null;
 let isHydrating: boolean = false;
-
-function warnIfHydrating() {
-  if (__DEV__) {
-    if (isHydrating) {
-      console.error(
-        'We should not be hydrating here. This is a bug in React. Please file a bug.',
-      );
-    }
-  }
-}
 
 function enterHydrationState(fiber: Fiber): boolean {
   if (!supportsHydration) {
@@ -81,19 +54,6 @@ function enterHydrationState(fiber: Fiber): boolean {
   const parentInstance = fiber.stateNode.containerInfo;
   nextHydratableInstance = getFirstHydratableChild(parentInstance);
   hydrationParentFiber = fiber;
-  isHydrating = true;
-  return true;
-}
-
-function reenterHydrationStateFromDehydratedSuspenseInstance(
-  fiber: Fiber,
-  suspenseInstance: SuspenseInstance,
-): boolean {
-  if (!supportsHydration) {
-    return false;
-  }
-  nextHydratableInstance = getNextHydratableSibling(suspenseInstance);
-  popToNextHostParent(fiber);
   isHydrating = true;
   return true;
 }
@@ -140,7 +100,7 @@ function deleteHydratableInstance(
 }
 
 function insertNonHydratedInstance(returnFiber: Fiber, fiber: Fiber) {
-  fiber.effectTag = (fiber.effectTag & ~Hydrating) | Placement;
+  fiber.effectTag |= Placement;
   if (__DEV__) {
     switch (returnFiber.tag) {
       case HostRoot: {
@@ -154,9 +114,6 @@ function insertNonHydratedInstance(returnFiber: Fiber, fiber: Fiber) {
           case HostText:
             const text = fiber.pendingProps;
             didNotFindHydratableContainerTextInstance(parentContainer, text);
-            break;
-          case SuspenseComponent:
-            didNotFindHydratableContainerSuspenseInstance(parentContainer);
             break;
         }
         break;
@@ -186,13 +143,6 @@ function insertNonHydratedInstance(returnFiber: Fiber, fiber: Fiber) {
               text,
             );
             break;
-          case SuspenseComponent:
-            didNotFindHydratableSuspenseInstance(
-              parentType,
-              parentProps,
-              parentInstance,
-            );
-            break;
         }
         break;
       }
@@ -220,31 +170,6 @@ function tryHydrate(fiber, nextInstance) {
       if (textInstance !== null) {
         fiber.stateNode = (textInstance: TextInstance);
         return true;
-      }
-      return false;
-    }
-    case SuspenseComponent: {
-      if (enableSuspenseServerRenderer) {
-        const suspenseInstance: null | SuspenseInstance = canHydrateSuspenseInstance(
-          nextInstance,
-        );
-        if (suspenseInstance !== null) {
-          const suspenseState: SuspenseState = {
-            dehydrated: suspenseInstance,
-            retryTime: Never,
-          };
-          fiber.memoizedState = suspenseState;
-          // Store the dehydrated fragment as a child fiber.
-          // This simplifies the code for getHostSibling and deleting nodes,
-          // since it doesn't have to consider all Suspense boundaries and
-          // check if they're dehydrated ones or not.
-          const dehydratedFragment = createFiberFromDehydratedFragment(
-            suspenseInstance,
-          );
-          dehydratedFragment.return = fiber;
-          fiber.child = dehydratedFragment;
-          return true;
-        }
       }
       return false;
     }
@@ -371,54 +296,12 @@ function prepareToHydrateHostTextInstance(fiber: Fiber): boolean {
   return shouldUpdate;
 }
 
-function prepareToHydrateHostSuspenseInstance(fiber: Fiber): void {
-  if (!supportsHydration) {
-    invariant(
-      false,
-      'Expected prepareToHydrateHostSuspenseInstance() to never be called. ' +
-        'This error is likely caused by a bug in React. Please file an issue.',
-    );
-  }
-
-  let suspenseState: null | SuspenseState = fiber.memoizedState;
-  let suspenseInstance: null | SuspenseInstance =
-    suspenseState !== null ? suspenseState.dehydrated : null;
-  invariant(
-    suspenseInstance,
-    'Expected to have a hydrated suspense instance. ' +
-      'This error is likely caused by a bug in React. Please file an issue.',
-  );
-  hydrateSuspenseInstance(suspenseInstance, fiber);
-}
-
-function skipPastDehydratedSuspenseInstance(
-  fiber: Fiber,
-): null | HydratableInstance {
-  if (!supportsHydration) {
-    invariant(
-      false,
-      'Expected skipPastDehydratedSuspenseInstance() to never be called. ' +
-        'This error is likely caused by a bug in React. Please file an issue.',
-    );
-  }
-  let suspenseState: null | SuspenseState = fiber.memoizedState;
-  let suspenseInstance: null | SuspenseInstance =
-    suspenseState !== null ? suspenseState.dehydrated : null;
-  invariant(
-    suspenseInstance,
-    'Expected to have a hydrated suspense instance. ' +
-      'This error is likely caused by a bug in React. Please file an issue.',
-  );
-  return getNextHydratableInstanceAfterSuspenseInstance(suspenseInstance);
-}
-
 function popToNextHostParent(fiber: Fiber): void {
   let parent = fiber.return;
   while (
     parent !== null &&
     parent.tag !== HostComponent &&
-    parent.tag !== HostRoot &&
-    parent.tag !== SuspenseComponent
+    parent.tag !== HostRoot
   ) {
     parent = parent.return;
   }
@@ -464,13 +347,9 @@ function popHydrationState(fiber: Fiber): boolean {
   }
 
   popToNextHostParent(fiber);
-  if (fiber.tag === SuspenseComponent) {
-    nextHydratableInstance = skipPastDehydratedSuspenseInstance(fiber);
-  } else {
-    nextHydratableInstance = hydrationParentFiber
-      ? getNextHydratableSibling(fiber.stateNode)
-      : null;
-  }
+  nextHydratableInstance = hydrationParentFiber
+    ? getNextHydratableSibling(fiber.stateNode)
+    : null;
   return true;
 }
 
@@ -484,19 +363,11 @@ function resetHydrationState(): void {
   isHydrating = false;
 }
 
-function getIsHydrating(): boolean {
-  return isHydrating;
-}
-
 export {
-  warnIfHydrating,
   enterHydrationState,
-  reenterHydrationStateFromDehydratedSuspenseInstance,
   resetHydrationState,
   tryToClaimNextHydratableInstance,
   prepareToHydrateHostInstance,
   prepareToHydrateHostTextInstance,
-  prepareToHydrateHostSuspenseInstance,
   popHydrationState,
-  getIsHydrating,
 };

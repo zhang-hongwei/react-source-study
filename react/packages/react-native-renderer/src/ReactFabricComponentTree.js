@@ -7,25 +7,14 @@
 
 import invariant from 'shared/invariant';
 
-import {enableNativeTargetAsInstance} from 'shared/ReactFeatureFlags';
-
 function getInstanceFromInstance(instanceHandle) {
   return instanceHandle;
 }
 
 function getTagFromInstance(inst) {
-  if (enableNativeTargetAsInstance) {
-    let nativeInstance = inst.stateNode.canonical;
-    invariant(
-      nativeInstance._nativeTag,
-      'All native instances should have a tag.',
-    );
-    return nativeInstance;
-  } else {
-    let tag = inst.stateNode.canonical._nativeTag;
-    invariant(tag, 'All native instances should have a tag.');
-    return tag;
-  }
+  let tag = inst.stateNode.canonical._nativeTag;
+  invariant(tag, 'All native instances should have a tag.');
+  return tag;
 }
 
 export {

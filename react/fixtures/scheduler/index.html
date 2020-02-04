@@ -90,78 +90,15 @@
       </div>
       <div> If the counter advanced while you were away from this tab, it's correct.</div>
     </li>
-    <li>
-      <p>Can pause execution, dump scheduled callbacks, and continue where it left off</p>
-      <button onClick="runTestEight()">Run Test 8</button>
-      <div><b>Click the button above, press "continue" to finish the test after it pauses:</b></div>
-      <button onClick="continueTestEight()">continue</button>
-      <div><b>Expected:</b></div>
-      <div id="test-8-expected">
-      </div>
-      <div> -------------------------------------------------</div>
-      <div> If the test didn't progress until you hit "continue" and </div>
-      <div> you see the same above and below afterwards it's correct.
-        <div> -------------------------------------------------</div>
-        <div><b>Actual:</b></div>
-        <div id="test-8"></div>
-    </li>
-    <li>
-      <p>Can force a specific framerate</p>
-      <p><b>IMPORTANT:</b> This test may be flaky if other tests have been run in this js instance. To get a clean test refresh the page before running test 9</p>
-      <button onClick="runTestNine()">Run Test 9</button>
-      <div><b>Expected:</b></div>
-      <div id="test-9-expected">
-      </div>
-      <div> -------------------------------------------------</div>
-      <div> If you see the same above and below it's correct.
-        <div> -------------------------------------------------</div>
-        <div><b>Actual:</b></div>
-        <div id="test-9"></div>
-      </div>
-    </li>
-    <li>
-      <p>Runs scheduled JS work for 99% of the frame time when nothing else is using the thread.</p>
-      <p><b>NOTE:</b> Try this test both when nothing else is running and when something is using the compositor thread in another visible tab with video or <a href="https://www.shadertoy.com/view/MtffDX">WebGL content</a> (Shift+Click).</p>
-      <button onClick="runTestTen()">Run Test 10</button>
-      <div><b>Expected:</b></div>
-      <div id="test-10-expected">
-      </div>
-      <div> -------------------------------------------------</div>
-      <div> If you see the same above and below it's correct.
-        <div> -------------------------------------------------</div>
-        <div><b>Actual:</b></div>
-        <div id="test-10"></div>
-      </div>
-    </li>
-    <li>
-      <p>Runs scheduled JS work more than 95% of the frame time when inserting DOM nodes.</p>
-      <p><b>NOTE:</b> Try this test both when nothing else is running and when something is using the compositor thread in another visible tab with video or <a href="https://www.shadertoy.com/view/MtffDX">WebGL content</a> (Shift+Click).</p>
-      <button onClick="runTestEleven()">Run Test 11</button>
-      <div><b>Expected:</b></div>
-      <div id="test-11-expected">
-      </div>
-      <div> -------------------------------------------------</div>
-      <div> If you see the same above and below it's correct.
-        <div> -------------------------------------------------</div>
-        <div><b>Actual:</b></div>
-        <div id="test-11"></div>
-      </div>
-    </li>
   </ol>
-  <script src="../../build/node_modules/react/umd/react.production.min.js"></script>
-  <script src="../../build/node_modules/scheduler/umd/scheduler.production.min.js"></script>
+  <script src="../../build/dist/react.development.js"></script>
+  <script src="../../build/node_modules/scheduler/umd/scheduler.development.js"></script>
   <script src="https://unpkg.com/babel-standalone@6/babel.js"></script>
   <script type="text/babel">
 const {
   unstable_scheduleCallback: scheduleCallback,
   unstable_cancelCallback: cancelCallback,
-  unstable_now: now,
-  unstable_getFirstCallbackNode: getFirstCallbackNode,
-  unstable_pauseExecution: pauseExecution,
-  unstable_continueExecution: continueExecution,
-  unstable_forceFrameRate: forceFrameRate,
-  unstable_shouldYield: shouldYield,
-  unstable_NormalPriority: NormalPriority,
+  unstable_now: now
 } = Scheduler;
 function displayTestResult(testNumber) {
   const expectationNode = document.getElementById('test-' + testNumber + '-expected');
@@ -233,7 +170,7 @@ const expectedResults = [
   [
     'scheduled Cb1',
     'frame 1 started',
-    'cb1 called with argument of false',
+    'cb1 called with argument of {"didTimeout":false}',
     'frame 2 started',
     'frame 3 started... we stop counting now.',
   ],
@@ -242,8 +179,8 @@ const expectedResults = [
     'scheduled CbA',
     'scheduled CbB',
     'frame 1 started',
-    'cbA called with argument of false',
-    'cbB called with argument of false',
+    'cbA called with argument of {"didTimeout":false}',
+    'cbB called with argument of {"didTimeout":false}',
     'frame 2 started',
     'frame 3 started... we stop counting now.',
   ],
@@ -253,9 +190,9 @@ const expectedResults = [
     'scheduled CbB',
     'frame 1 started',
     'scheduled CbA again',
-    'cbA0 called with argument of false',
-    'cbB called with argument of false',
-    'cbA1 called with argument of false',
+    'cbA0 called with argument of {"didTimeout":false}',
+    'cbB called with argument of {"didTimeout":false}',
+    'cbA1 called with argument of {"didTimeout":false}',
     'frame 2 started',
     'frame 3 started... we stop counting now.',
   ],
@@ -267,43 +204,16 @@ const expectedResults = [
     'scheduled cbD',
     'frame 1 started',
     'cbC called with argument of {"didTimeout":true}',
-    'cbA called with argument of false',
+    'cbA called with argument of {"didTimeout":false}',
     'cbA running and taking some time',
     'frame 2 started',
-    'cbB called with argument of false',
-    'cbD called with argument of false',
+    'cbB called with argument of {"didTimeout":false}',
+    'cbD called with argument of {"didTimeout":false}',
     'frame 3 started... we stop counting now.',
   ],
   // test 5
   [
     // ... TODO
-  ],
-  [],
-  [],
-  // Test 8
-  [
-    'Queue size: 0.',
-    'Pausing... press continue to resume.',
-    'Queue size: 2.',
-    'Finishing...',
-    'Done!',
-  ],
-  // test 9
-  [
-    'Forcing new frame times...',
-    'Using new frame time!',
-    'Using new frame time!',
-    'Finished!',
-  ],
-  // test 10
-  [
-    'Running work for 10 seconds...',
-    'Ran scheduled work for >99% of the time.',
-  ],
-  // test 11
-  [
-    'Running work for 10 seconds...',
-    'Ran scheduled work for >95% of the time.',
   ],
 ];
 function runTestOne() {
@@ -315,7 +225,7 @@ function runTestOne() {
   const cb1 = (x) => {
     updateTestResult(1, 'cb1 called with argument of ' + JSON.stringify(x));
   }
-  scheduleCallback(NormalPriority, cb1);
+  scheduleCallback(cb1);
   updateTestResult(1, 'scheduled Cb1');
   logWhenFramesStart(1, () => {
     displayTestResult(1);
@@ -333,9 +243,9 @@ function runTestTwo() {
   const cbB = (x) => {
     updateTestResult(2, 'cbB called with argument of ' + JSON.stringify(x));
   }
-  scheduleCallback(NormalPriority, cbA);
+  scheduleCallback(cbA);
   updateTestResult(2, 'scheduled CbA');
-  scheduleCallback(NormalPriority, cbB);
+  scheduleCallback(cbB);
   updateTestResult(2, 'scheduled CbB');
   logWhenFramesStart(2, () => {
     displayTestResult(2);
@@ -350,7 +260,7 @@ function runTestThree() {
   let callbackAIterations = 0;
   const cbA = (x) => {
     if (callbackAIterations < 1) {
-      scheduleCallback(NormalPriority, cbA);
+      scheduleCallback(cbA);
       updateTestResult(3, 'scheduled CbA again');
     }
     updateTestResult(3, 'cbA' + callbackAIterations + ' called with argument of ' + JSON.stringify(x));
@@ -359,9 +269,9 @@ function runTestThree() {
   const cbB = (x) => {
     updateTestResult(3, 'cbB called with argument of ' + JSON.stringify(x));
   }
-  scheduleCallback(NormalPriority, cbA);
+  scheduleCallback(cbA);
   updateTestResult(3, 'scheduled CbA');
-  scheduleCallback(NormalPriority, cbB);
+  scheduleCallback(cbB);
   updateTestResult(3, 'scheduled CbB');
   logWhenFramesStart(3, () => {
     displayTestResult(3);
@@ -395,13 +305,13 @@ function runTestFour() {
   const cbD = (x) => {
     updateTestResult(4, 'cbD called with argument of ' + JSON.stringify(x));
   }
-  scheduleCallback(NormalPriority, cbA); // won't time out
+  scheduleCallback(cbA); // won't time out
   updateTestResult(4, 'scheduled cbA');
-  scheduleCallback(NormalPriority, cbB, {timeout: 100}); // times out later
+  scheduleCallback(cbB, {timeout: 100}); // times out later
   updateTestResult(4, 'scheduled cbB');
-  scheduleCallback(NormalPriority, cbC, {timeout: 1}); // will time out fast
+  scheduleCallback(cbC, {timeout: 1}); // will time out fast
   updateTestResult(4, 'scheduled cbC');
-  scheduleCallback(NormalPriority, cbD); // won't time out
+  scheduleCallback(cbD); // won't time out
   updateTestResult(4, 'scheduled cbD');
 
   // should have run in order of C, A, B, D
@@ -480,15 +390,15 @@ function runTestFive() {
         });
       });
     });
-    scheduleCallback(NormalPriority, cbA);
+    scheduleCallback(cbA);
     console.log('scheduled cbA');
-    scheduleCallback(NormalPriority, cbB); // will throw error
+    scheduleCallback(cbB); // will throw error
     console.log('scheduled cbB');
-    scheduleCallback(NormalPriority, cbC);
+    scheduleCallback(cbC);
     console.log('scheduled cbC');
-    scheduleCallback(NormalPriority, cbD); // will throw error
+    scheduleCallback(cbD); // will throw error
     console.log('scheduled cbD');
-    scheduleCallback(NormalPriority, cbE);
+    scheduleCallback(cbE);
     console.log('scheduled cbE');
   };
 }
@@ -558,15 +468,15 @@ function runTestSix() {
         });
       });
     });
-    scheduleCallback(NormalPriority, cbA);
+    scheduleCallback(cbA);
     console.log('scheduled cbA');
-    scheduleCallback(NormalPriority, cbB); // will throw error
+    scheduleCallback(cbB); // will throw error
     console.log('scheduled cbB');
-    scheduleCallback(NormalPriority, cbC, {timeout: 1});
+    scheduleCallback(cbC, {timeout: 1});
     console.log('scheduled cbC');
-    scheduleCallback(NormalPriority, cbD, {timeout: 1}); // will throw error
+    scheduleCallback(cbD, {timeout: 1}); // will throw error
     console.log('scheduled cbD');
-    scheduleCallback(NormalPriority, cbE, {timeout: 1});
+    scheduleCallback(cbE, {timeout: 1});
     console.log('scheduled cbE');
   };
 }
@@ -582,150 +492,10 @@ function runTestSeven() {
     counter++;
     counterNode.innerHTML = counter;
     waitForTimeToPass(100);
-    scheduleCallback(NormalPriority, incrementCounterAndScheduleNextCallback);
+    scheduleCallback(incrementCounterAndScheduleNextCallback);
   }
-  scheduleCallback(NormalPriority, incrementCounterAndScheduleNextCallback);
+  scheduleCallback(incrementCounterAndScheduleNextCallback);
 }
-
-function runTestEight() {
-  // Test 8
-  // Pauses execution, dumps the queue, and continues execution
-  clearTestResult(8);
-
-  function countNodesInStack(firstCallbackNode) {
-    var node = firstCallbackNode;
-    var count = 0;
-    if (node !== null) {
-      do {
-        count = count + 1;
-        node = node.next;
-      } while (node !== firstCallbackNode);
-    }
-    return count;
-  }
-
-  scheduleCallback(NormalPriority, () => {
-
-    // size should be 0
-    updateTestResult(8, `Queue size: ${countNodesInStack(getFirstCallbackNode())}.`);
-    updateTestResult(8, 'Pausing... press continue to resume.');
-    pauseExecution();
-
-    scheduleCallback(NormalPriority, function () {
-      updateTestResult(8, 'Finishing...');
-      displayTestResult(8);
-    })
-    scheduleCallback(NormalPriority, function () {
-      updateTestResult(8, 'Done!');
-      displayTestResult(8);
-      checkTestResult(8);
-    })
-
-    // new size should be 2 now
-    updateTestResult(8, `Queue size: ${countNodesInStack(getFirstCallbackNode())}.`);
-    displayTestResult(8);
-  });
-}
-
-function continueTestEight() {
-  continueExecution();
-}
-
-function runTestNine() {
-  clearTestResult(9);
-  // We have this to make sure that the thing that goes right after it can get a full frame
-  var forceFrameFinish = () => {
-    while (!shouldYield()) {
-      waitForTimeToPass(1);
-    }
-    waitForTimeToPass(100);
-  }
-  scheduleCallback(NormalPriority, forceFrameFinish);
-  scheduleCallback(NormalPriority, () => {
-    var startTime = now();
-    while (!shouldYield()) {}
-    var initialFrameTime = now() - startTime;
-    var newFrameTime = (initialFrameTime * 2) > 60 ? (initialFrameTime * 2) : 60;
-    var newFrameRate = Math.floor(1000/newFrameTime);
-    updateTestResult(9, `Forcing new frame times...`);
-    displayTestResult(9);
-    forceFrameRate(newFrameRate);
-    var toSchedule = (again) => {
-      var startTime = now();
-      while (!shouldYield()) {}
-      var frameTime = now() - startTime;
-      if (frameTime >= (newFrameTime-8)) {
-        updateTestResult(9, `Using new frame time!`);
-      } else {
-        updateTestResult(9, `Failed to use new frame time. (off by ${newFrameTime - frameTime}ms)`);
-      }
-      displayTestResult(9);
-      if (again) {
-        scheduleCallback(NormalPriority, forceFrameFinish);
-        scheduleCallback(NormalPriority, () => {toSchedule(false);});
-      } else {
-        updateTestResult(9, `Finished!`);
-        forceFrameRate(0);
-        displayTestResult(9);
-        checkTestResult(9);
-      }
-    }
-    scheduleCallback(NormalPriority, forceFrameFinish);
-    scheduleCallback(NormalPriority, () => {toSchedule(true);});
-  });
-}
-
-function runTestTen() {
-  clearTestResult(10);
-  updateTestResult(10, `Running work for 10 seconds...`);
-  var testStartTime = now();
-  var accumulatedWork = 0
-  function loop() {
-    var startTime = now();
-    while (!shouldYield()) {}
-    var endTime = now();
-    accumulatedWork += endTime - startTime;
-    var runTime = endTime - testStartTime;
-    if (runTime > 10000) {
-      updateTestResult(10, `Ran scheduled work for ${(100 * accumulatedWork / runTime).toFixed(2)}% of the time.`);
-      displayTestResult(10);
-      return;
-    }
-    scheduleCallback(NormalPriority, loop);
-  }
-  scheduleCallback(NormalPriority, loop);
-}
-
-function runTestEleven() {
-  clearTestResult(11);
-  updateTestResult(11, `Running work for 10 seconds...`);
-  var testStartTime = now();
-  var lastInsertion = 0;
-  var accumulatedWork = 0
-  function loop() {
-    var startTime = now();
-    var timeSinceLastDOMInteraction = startTime - lastInsertion;
-    if (timeSinceLastDOMInteraction > 15) {
-      lastInsertion = startTime;
-      var node = document.createElement('div');
-      node.textContent = startTime;
-      document.body.appendChild(node);
-      document.body.clientHeight; // force layout
-    }
-    while (!shouldYield()) {}
-    var endTime = now();
-    accumulatedWork += endTime - startTime;
-    var runTime = endTime - testStartTime;
-    if (runTime > 10000) {
-      updateTestResult(11, `Ran scheduled work for ${(100 * accumulatedWork / runTime).toFixed(2)}% of the time.`);
-      displayTestResult(11);
-      return;
-    }
-    scheduleCallback(NormalPriority, loop);
-  }
-  scheduleCallback(NormalPriority, loop);
-}
-
     </script type="text/babel">
   </body>
 </html>
